@@ -1,0 +1,39 @@
+This visualization presents the predicted versus true values for two key satellite orbital parameters, $\omega$ (argument of periapsis) and $i$ (inclination), illustrating the impact of varying physics loss weights in a predictive model.
+
+Here's a detailed breakdown:
+
+**Overall Structure:** The image contains two distinct subplots, stacked vertically, each displaying "Predicted vs True" values for a specific orbital element.
+
+---
+
+**Sub-plot 1: Predicted vs True $\omega$**
+
+1.  **Header:** "Predicted vs True $\omega$"
+2.  **X-axis:** "Sample Index," ranging from 0 to 3000, representing discrete time steps or data points. The unit is implicit (unitless index).
+3.  **Y-axis:** "$\omega$ (degrees)," ranging approximately from 80 to 100 degrees, representing the argument of periapsis.
+4.  **Trend Lines/Curves/Data Clusters:**
+    *   **True $\omega$ (degrees):** Represented by a solid black line. This line serves as the ground truth or actual trajectory of $\omega$. It exhibits a complex, oscillatory pattern with varying amplitudes and frequencies throughout the 3000 samples, reaching peaks near 97-99 degrees and troughs around 80-84 degrees.
+    *   **Physics loss weight = 0.0:** Represented by a dashed red line. This line denotes the model's prediction when no physics-informed loss component is applied (a purely data-driven approach). This curve generally follows the true $\omega$ trend but shows noticeable deviations, particularly at the extrema. It frequently undershoots peaks (e.g., around Sample Index 250, 700, 1100, 1600, 2200, 2700) and overshoots troughs (e.g., around Sample Index 400, 900, 1300, 1900, 2400), indicating substantial prediction error in amplitude.
+    *   **Physics loss weight = 0.3:** Represented by a dashed blue line. With a moderate physics loss component, this prediction shows improved alignment with the true $\omega$ compared to the 0.0 weight. The deviations from the true line are visibly reduced, especially in the amplitude matching of oscillations, but some discrepancies remain.
+    *   **Physics loss weight = 0.5:** Represented by a dashed green line. Further increasing the physics loss weight to 0.5 results in a prediction that very closely tracks the true $\omega$. This line largely overlaps the solid black line, demonstrating high accuracy across most of the sample indices, with minimal discernible deviations.
+    *   **Physics loss weight = 0.7:** Represented by a dashed purple line. This line, with the highest physics loss weight shown, also exhibits excellent agreement with the true $\omega$. It performs comparably to the 0.5 weight, often indistinguishable from the true line, suggesting a highly robust prediction. In some very minor instances, its fit might be slightly less perfect than the 0.5 weight, but overall, it represents a significant improvement over lower weights.
+
+---
+
+**Sub-plot 2: Predicted vs True $i$**
+
+1.  **Header:** "Predicted vs True $i$"
+2.  **X-axis:** "Sample Index," ranging from 0 to 3000, identical to the top subplot.
+3.  **Y-axis:** "$i$ (degrees)," ranging approximately from 86.388 to 86.404 degrees, representing the inclination. Notably, the y-axis range is very narrow (0.016 degrees), indicating that even small absolute errors are significant relative to the total variation.
+4.  **Trend Lines/Curves/Data Clusters:**
+    *   **True $i$ (degrees):** Represented by a solid black line. This is the actual inclination value, which also displays an oscillatory pattern, albeit with a much smaller amplitude range compared to $\omega$.
+    *   **Physics loss weight = 0.0:** Represented by a dashed red line. Similar to $\omega$, the prediction without physics loss shows the largest deviations from the true $i$. The red line consistently fails to capture the precise amplitudes of the oscillations, exhibiting noticeable undershoots at peaks (e.g., around Sample Index 200, 700, 1200, 1700, 2200, 2700) and overshoots at troughs (e.g., around Sample Index 450, 950, 1450, 1950, 2450), especially prominent in the latter half of the data (e.g., after Sample Index 2000), where its amplitude errors become more pronounced.
+    *   **Physics loss weight = 0.4:** Represented by a dashed blue line. Introducing a physics loss weight of 0.4 significantly reduces the prediction error compared to 0.0. The blue line tracks the true $i$ much more closely, with improved amplitude matching.
+    *   **Physics loss weight = 0.5:** Represented by a dashed green line. With a physics loss weight of 0.5, the predicted curve demonstrates excellent fidelity to the true $i$. This line appears to overlap the solid black line for most of its length, indicating a highly accurate prediction.
+    *   **Physics loss weight = 0.6:** Represented by a dashed purple line. This line, corresponding to a physics loss weight of 0.6, also shows superior performance, nearly perfectly aligning with the true $i$. It performs comparably to the 0.5 weight, highlighting the benefits of physics-informed regularization for this parameter.
+
+---
+
+**Core Engineering Conclusion:**
+
+This visualization conclusively demonstrates that incorporating a physics-informed loss component significantly enhances the accuracy of orbital parameter prediction for both $\omega$ (argument of periapsis) and $i$ (inclination). Models trained purely on data (Physics loss weight = 0.0) exhibit substantial errors, particularly in capturing the amplitudes of the oscillatory dynamics. As the physics loss weight increases, the predicted trajectories progressively converge to the true values, with weights in the range of 0.5 to 0.7 for $\omega$ and 0.5 to 0.6 for $i$ yielding nearly indistinguishable results from the true orbital elements. This indicates that leveraging physical laws as a regularization or training objective function for machine learning models is crucial for achieving high-fidelity prediction of satellite navigation parameters, particularly for intricate, long-term orbital evolutions. The optimal performance is achieved when physics-based constraints are strongly weighted, suggesting that the underlying physics effectively guides the model to learn more robust and accurate representations of the satellite's dynamics.

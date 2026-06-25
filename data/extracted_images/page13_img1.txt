@@ -1,0 +1,50 @@
+This chart presents a comparative analysis of Root Mean Square Error (RMSE) for the position and velocity of the IRIDIUM 7 satellite over time, evaluating two different methods for orbital element representation: Outdated TLEs and Predicted TLEs, against a recent TLE as the reference.
+
+**1. Explicit Titles/Headers:**
+*   **Top Subplot:** "Root Mean Square Error (RMSE) for IRIDIUM 7 Position Over Time"
+*   **Bottom Subplot:** "RMSE of IRIDIUM 7 Velocity Over Time"
+
+**2. X-axis and Y-axis labels and units:**
+*   **X-axis (Both Subplots):** "Time (seconds)"
+*   **Y-axis (Top Subplot):** "RMSE (km)" (Root Mean Square Error in kilometers)
+*   **Y-axis (Bottom Subplot):** "RMSE (km/s)" (Root Mean Square Error in kilometers per second)
+
+**3. Breakdown of Trend Lines, Curves, or Data Clusters:**
+
+**A. Top Subplot: RMSE for IRIDIUM 7 Position Over Time**
+*   **Blue Line: "RMSE between recent TLE and Outdated TLE"**
+    *   This line represents the position error when using an outdated Two-Line Element (TLE) set compared to a recent, assumed accurate, TLE.
+    *   It starts at approximately 0.55 km at Time = 0 seconds.
+    *   The error steadily increases, peaking around 0.77 km between 1800 and 2200 seconds.
+    *   After the peak, it shows a slight decline, ending around 0.68 km at 3600 seconds.
+    *   The overall trend is an increase in position error as time progresses, indicating a significant divergence from the true orbital state when relying on an outdated TLE.
+*   **Orange Line: "RMSE between recent TLE and Predicted TLE"**
+    *   This line represents the position error when using a predicted TLE compared to a recent TLE.
+    *   It starts at a much lower value, around 0.12 km at Time = 0 seconds.
+    *   It remains remarkably stable and low throughout the entire 3600-second duration, fluctuating slightly between approximately 0.08 km and 0.12 km.
+    *   There is a minor dip to its lowest point around 0.08 km between 1000 and 1500 seconds, and it ends around 0.10 km at 3600 seconds.
+    *   This indicates a consistently low and well-maintained accuracy over time.
+
+**B. Bottom Subplot: RMSE of IRIDIUM 7 Velocity Over Time**
+*   **Blue Line: "RMSE between recent TLE and Outdated TLE"**
+    *   This line represents the velocity error when using an outdated TLE compared to a recent TLE.
+    *   It starts at approximately 0.00058 km/s at Time = 0 seconds.
+    *   The error steadily increases, peaking around 0.00067 km/s between 2000 and 2500 seconds.
+    *   Similar to the position error, it then shows a slight decrease, ending around 0.00062 km/s at 3600 seconds.
+    *   The overall trend demonstrates increasing velocity error over time for outdated TLEs.
+*   **Orange Line: "RMSE between recent TLE and Predicted TLE"**
+    *   This line represents the velocity error when using a predicted TLE compared to a recent TLE.
+    *   It starts at a much lower value, around 0.00022 km/s at Time = 0 seconds.
+    *   It shows a slight initial decrease to its lowest point, around 0.00019 km/s, between 1000 and 1500 seconds.
+    *   Subsequently, it slightly increases, ending around 0.00021 km/s at 3600 seconds.
+    *   The velocity error remains consistently low and stable throughout the entire 3600-second period, maintaining high accuracy.
+
+**4. Core Engineering Conclusion Represented by the Visualization:**
+
+The visualization clearly demonstrates that **using a "Predicted TLE" method provides significantly superior accuracy and stability in estimating both the position and velocity of the IRIDIUM 7 satellite compared to relying on an "Outdated TLE" over a several-hour period.**
+
+Specifically:
+*   For **position**, the predicted TLE maintains an RMSE an order of magnitude lower (around 0.1 km) than the outdated TLE (which grows from 0.55 km to nearly 0.8 km).
+*   For **velocity**, the predicted TLE also maintains a consistently lower and more stable RMSE (around 0.0002 km/s) compared to the outdated TLE (which grows from 0.00058 km/s to nearly 0.00067 km/s).
+
+This highlights the critical importance of utilizing updated or accurately predicted orbital elements for precise satellite navigation, tracking, and mission planning. Outdated TLEs quickly lead to unacceptable levels of error, underscoring the necessity of continuous TLE updates or robust predictive models to maintain accurate orbital state knowledge.

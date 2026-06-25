@@ -1,0 +1,50 @@
+Here is a structured, highly granular text description of the provided charts:
+
+**Chart 1: Root Mean Square Error (RMSE) for ORBCOMM FM26 Position Over Time**
+
+1.  **Title/Header:** Root Mean Square Error (RMSE) for ORBCOMM FM26 Position Over Time
+2.  **X-axis Label and Units:** Time (seconds)
+3.  **Y-axis Label and Units:** RMSE (km)
+4.  **Trend Lines/Curves Breakdown:**
+    *   **Blue Line ("RMSE between recent TLE and Outdated TLE"):**
+        *   Represents the positional error (Root Mean Square Error) when comparing the satellite's position derived from recent TLEs against its position derived from outdated TLEs.
+        *   It starts at approximately 1.21 km at Time = 0 seconds.
+        *   The RMSE gradually increases, displaying a slightly concave-downward curve, reaching a peak of about 1.34 km between 2800 and 3000 seconds.
+        *   It then shows a very slight decrease towards the end of the observed period, finishing at approximately 1.32 km at 3600 seconds.
+        *   The error for outdated TLEs consistently remains above 1.2 km throughout the entire 3600-second interval.
+    *   **Orange Line ("RMSE between recent TLE and Predicted TLE"):**
+        *   Represents the positional error when comparing the satellite's position derived from recent TLEs against its position derived from predicted TLEs.
+        *   It starts at a much lower value of approximately 0.53 km at Time = 0 seconds.
+        *   The RMSE initially increases, peaking at about 0.67 km around 1500-1600 seconds.
+        *   Following this peak, the error decreases significantly, reaching a local minimum of approximately 0.58 km between 2700 and 2800 seconds.
+        *   It then slightly increases again, ending at about 0.62 km at 3600 seconds.
+        *   This curve shows a "U-like" shape in reverse, indicating a initial increase, then improvement, then a slight decline in accuracy over time.
+5.  **Core Engineering Conclusion (Position):** The use of predicted TLEs consistently results in significantly lower positional Root Mean Square Error for the ORBCOMM FM26 satellite compared to using outdated TLEs. The position error with predicted TLEs remains well below 0.7 km, whereas outdated TLEs lead to errors consistently exceeding 1.2 km. This indicates a substantial improvement in position accuracy through TLE prediction.
+
+---
+
+**Chart 2: RMSE of ORBCOMM FM26 Velocity Over Time**
+
+1.  **Title/Header:** RMSE of ORBCOMM FM26 Velocity Over Time
+2.  **X-axis Label and Units:** Time (sccconds) - *Note: "sccconds" appears to be a typo and likely intended to be "seconds".*
+3.  **Y-axis Label and Units:** RMSE (km/s)
+4.  **Trend Lines/Curves Breakdown:**
+    *   **Blue Line ("RMSE between recent TLE and Outdated TLE"):**
+        *   Represents the velocity error (Root Mean Square Error) when comparing the satellite's velocity derived from recent TLEs against its velocity derived from outdated TLEs.
+        *   It starts at approximately 0.00125 km/s at Time = 0 seconds.
+        *   The RMSE shows a gradual, nearly linear increase throughout the observed period.
+        *   It finishes at approximately 0.00138 km/s at 3600 seconds.
+        *   The velocity error for outdated TLEs consistently remains above 0.0012 km/s.
+    *   **Orange Line ("RMSE between recent TLE and Predicted TLE"):**
+        *   Represents the velocity error when comparing the satellite's velocity derived from recent TLEs against its velocity derived from predicted TLEs.
+        *   It starts at approximately 0.00053 km/s at Time = 0 seconds.
+        *   The RMSE initially decreases, reaching a minimum of approximately 0.00037 km/s between 800 and 900 seconds.
+        *   Following this minimum, the error steadily increases, finishing at approximately 0.00063 km/s at 3600 seconds.
+        *   This curve displays a distinct "U-shape," indicating initial improvement in prediction accuracy before a gradual decline.
+5.  **Core Engineering Conclusion (Velocity):** Similar to position, predicting TLEs leads to significantly reduced velocity Root Mean Square Error for the ORBCOMM FM26 satellite compared to using outdated TLEs. The velocity error with predicted TLEs stays below 0.00065 km/s, while outdated TLEs result in errors consistently exceeding 0.0012 km/s. The prediction model appears most effective in minimizing velocity error around 800-900 seconds.
+
+---
+
+**Overall Engineering Conclusion from Both Visualizations:**
+
+The combined analysis strongly suggests that employing a TLE prediction methodology offers substantial improvements in maintaining accurate orbital state knowledge for the ORBCOMM FM26 satellite. For both position and velocity, the Root Mean Square Errors derived from predicted TLEs are consistently and significantly lower than those from outdated TLEs across the entire 3600-second observation window. This demonstrates the effectiveness of TLE prediction in mitigating the degradation of orbital element accuracy over time, providing more precise data crucial for satellite navigation, tracking, and mission planning compared to relying on stale orbital parameters.

@@ -1,0 +1,90 @@
+This visualization presents the **Percent Mean Absolute Error (MAE) Improvement over λ = 0 (%)** for six different Keplerian orbital elements as a function of the **Physics Loss Weight λ**. Each subplot focuses on a specific orbital element, while lines within each subplot represent different satellites.
+
+Here's a structured, granular analysis:
+
+**Overall Structure:**
+The image comprises six distinct subplots arranged in a 2x3 grid. Each subplot shares common X-axis and Y-axis labels and a consistent legend.
+
+*   **X-axis Label:** "Physics Loss Weight λ"
+    *   **Units:** Unitless.
+    *   **Range:** From 0.0 to 0.9, typically with data points at intervals of 0.1.
+*   **Y-axis Label:** "Percent MAE Improvement over λ = 0 (%)"
+    *   **Units:** Percent (%).
+    *   **Interpretation:** A positive value indicates an improvement (reduction) in MAE compared to a model with λ=0 (i.e., no physics loss applied). A negative value indicates a degradation (increase) in MAE. The horizontal dashed black line at 0% serves as the baseline performance for comparison.
+*   **Data Series/Legend:** "Satellite"
+    *   Six distinct satellites are tracked across all plots, each represented by a unique color and marker:
+        *   ir16 (Blue circles)
+        *   ir17 (Green circles)
+        *   ir26 (Orange circles)
+        *   ir38 (Red circles)
+        *   ir39 (Purple circles)
+        *   ir45 (Dark Gray/Black circles)
+
+**Subplot 1: %MAE Improvement for *e* vs λ**
+*   **Title:** %MAE Improvement for *e* vs λ (where *e* represents eccentricity).
+*   **Y-axis Range:** Approximately -160% to +60%.
+*   **Trends:**
+    *   **ir16 (blue):** Shows significant improvement, peaking at ~60% for λ=0.5, then gradually decreasing but remaining positive until λ=0.8.
+    *   **ir17 (green):** Generally positive improvement, with peaks around 45% at λ=0.3 and λ=0.5.
+    *   **ir26 (orange):** Moderately positive, peaking around 30-35% at λ=0.2 and λ=0.7. Stays mostly above the 0% baseline.
+    *   **ir38 (red):** Initial improvement (~25% at λ=0.2), then shows significant degradation, reaching ~-55% at λ=0.5 and ~-35% at λ=0.7.
+    *   **ir39 (purple):** Highly variable, with strong improvements up to ~60% at λ=0.2 and λ=0.7, but also substantial degradation at λ=0.3 (~-15%) and a significant drop to ~-90% at λ=0.6.
+    *   **ir45 (dark gray):** Exhibits the most severe degradation, consistently below the 0% baseline from λ=0.4, plummeting to ~-150% at λ=0.7.
+
+**Subplot 2: %MAE Improvement for *ω* vs λ**
+*   **Title:** %MAE Improvement for *ω* vs λ (where *ω* represents argument of perigee).
+*   **Y-axis Range:** Approximately -125% to +50%.
+*   **Trends:**
+    *   **ir16 (blue):** Mixed, showing improvements up to ~35% (λ=0.1, λ=0.4) but also dipping below the baseline at λ=0.5 (~-5%) and λ=0.8 (~-10%).
+    *   **ir17 (green):** Generally positive improvement, peaking at ~45% at λ=0.2 and remaining mostly above 0%.
+    *   **ir26 (orange):** Consistently positive improvement, peaking around 45% at λ=0.1 and λ=0.8, one of the best performers for *ω*.
+    *   **ir38 (red):** Mostly positive, peaking around 35-40% at λ=0.3 and λ=0.5.
+    *   **ir39 (purple):** Highly erratic, with significant degradation at λ=0.2 (~-50%), λ=0.6 (~-100%), and λ=0.7 (~-70%). Shows some improvements at λ=0.4 and λ=0.9.
+    *   **ir45 (dark gray):** Significant degradation at λ=0.2 (~-65%) and λ=0.6 (~-70%), but also positive improvements up to ~25% at λ=0.1 and λ=0.8.
+
+**Subplot 3: %MAE Improvement for *i* vs λ**
+*   **Title:** %MAE Improvement for *i* vs λ (where *i* represents inclination).
+*   **Y-axis Range:** Approximately -280% to +60%.
+*   **Trends:**
+    *   **ir16 (blue):** Shows dramatic degradation at lower λ values, reaching ~-170% at λ=0.1 and ~-270% at λ=0.2. Recovers strongly for higher λ, showing consistent improvements of ~50% from λ=0.4 to λ=0.8.
+    *   **ir17 (green):** Generally positive, peaking at ~50% at λ=0.1 and λ=0.4, with slight dips below 0% at λ=0.5 and λ=0.7.
+    *   **ir26 (orange):** Highly variable, with improvements up to ~55% (λ=0.5, λ=0.7, λ=0.8) but severe degradation around λ=0.3 (~-60%) and λ=0.4 (~-50%).
+    *   **ir38 (red):** Very volatile, with significant degradation at λ=0.1 (~-60%), λ=0.6, and λ=0.7 (both ~-100%). Shows improvements at λ=0.4 and λ=0.8.
+    *   **ir39 (purple):** Mostly positive improvement, peaking at ~55% at λ=0.2.
+    *   **ir45 (dark gray):** Generally positive, peaking at ~50% at λ=0.3, staying mostly above 0%.
+
+**Subplot 4: %MAE Improvement for *M* vs λ**
+*   **Title:** %MAE Improvement for *M* vs λ (where *M* represents mean anomaly).
+*   **Y-axis Range:** Approximately -170% to +50%.
+*   **Trends:**
+    *   **ir16 (blue):** Generally positive, peaking at ~25% at λ=0.4, but dips below 0% at λ=0.7 and λ=0.8.
+    *   **ir17 (green):** Shows extreme degradation, plummeting to ~-170% at λ=0.5. Otherwise, some improvements at λ=0.1, λ=0.4, λ=0.6, and λ=0.9.
+    *   **ir26 (orange):** Variable, with improvements up to ~30% at λ=0.1, but degradation at λ=0.3 (~-20%), λ=0.5 (~-30%), and λ=0.6 (~-60%).
+    *   **ir38 (red):** Consistently positive improvement, peaking around 45% at λ=0.3 and λ=0.7, one of the best performers for *M*.
+    *   **ir39 (purple):** Mostly degradation, with significant drops at λ=0.2 (~-50%), λ=0.5 (~-35%), and λ=0.6 (~-75%).
+    *   **ir45 (dark gray):** Mixed, with improvements up to ~30% at λ=0.4, but also degradation at λ=0.2 (~-15%) and λ=0.5 (~-20%).
+
+**Subplot 5: %MAE Improvement for *n* vs λ**
+*   **Title:** %MAE Improvement for *n* vs λ (where *n* represents mean motion).
+*   **Y-axis Range:** Approximately -320% to +100%.
+*   **Trends:**
+    *   **ir16 (blue):** Exhibits severe and consistent degradation, with extreme drops to ~-320% at λ=0.2, ~-180% at λ=0.6, and ~-260% at λ=0.8. Only minor positive improvement at λ=0.4.
+    *   **ir17 (green):** Mixed, with improvements at λ=0.1 (~20%) and λ=0.4 (~20%), but significant degradation at λ=0.3 (~-30%), λ=0.6 (~-80%), and λ=0.8-0.9 (~-90%).
+    *   **ir26 (orange):** Shows consistently strong positive improvement, peaking near 90% at λ=0.1, λ=0.2, and λ=0.5. One of the best overall performances observed.
+    *   **ir38 (red):** Shows consistently strong positive improvement, peaking near 95% at λ=0.2 and λ=0.3. Another top performer for *n*.
+    *   **ir39 (purple):** Positive at lower λ (up to ~50% at λ=0.1, λ=0.2, λ=0.4), but significant degradation at higher λ (e.g., ~-80% at λ=0.6, ~-170% at λ=0.8).
+    *   **ir45 (dark gray):** Positive at lower λ (up to ~70% at λ=0.1, λ=0.2, λ=0.4), but degrades significantly at higher λ (e.g., ~-30% at λ=0.7, ~-60% at λ=0.8).
+
+**Subplot 6: %MAE Improvement for *Ω* vs λ**
+*   **Title:** %MAE Improvement for *Ω* vs λ (where *Ω* represents longitude of ascending node).
+*   **Y-axis Range:** Approximately -320% to +60%.
+*   **Trends:**
+    *   **ir16 (blue):** Shows consistent positive improvement, peaking around 60% at λ=0.2 and generally staying well above the baseline.
+    *   **ir17 (green):** Mixed, with improvements at λ=0.1, λ=0.4, λ=0.8 (20-30%), but significant degradation at λ=0.5 (~-80%) and λ=0.9 (~-90%).
+    *   **ir26 (orange):** Highly erratic. Peaks at ~50% at λ=0.1 but then drops dramatically, reaching ~-150% at λ=0.2, ~-80% at λ=0.5, and ~-100% at λ=0.7.
+    *   **ir38 (red):** Consistently strong positive improvement, peaking around 50% at λ=0.1, λ=0.7, and λ=0.8, one of the best performers for *Ω*.
+    *   **ir39 (purple):** Generally positive improvement, peaking around 35% at λ=0.3 and λ=0.4.
+    *   **ir45 (dark gray):** Highly variable, with improvements up to ~30% at λ=0.4, but an extreme degradation to ~-310% at λ=0.7. Also negative at λ=0.2 and λ=0.6.
+
+**Core Engineering Conclusion:**
+The integration of physics loss into the neural network training, controlled by the weight λ, yields highly inconsistent and satellite-dependent results for Mean Absolute Error (MAE) prediction of Keplerian orbital elements. While significant MAE improvements (up to ~95% for mean motion *n* for satellites ir26 and ir38) are observed for certain satellite-orbital element combinations and specific λ values, other combinations experience catastrophic degradation in MAE (up to ~320% increase for mean motion *n* for ir16, and ~310% for longitude of ascending node *Ω* for ir45). There is no single optimal λ value that universally benefits all satellites or all orbital elements. Some satellites show robustness across elements (e.g., ir38 consistently performs well for *ω*, *M*, *n*, *Ω*), while others exhibit extreme sensitivity and degradation for specific elements (e.g., ir16 for *i* and *n*, ir45 for *e* and *Ω*). This necessitates a tailored approach, where the physics loss weight λ must be carefully optimized and validated for each individual satellite and each specific orbital element prediction to ensure performance gains and avoid severe accuracy compromises.

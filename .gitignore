@@ -179,3 +179,15 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# --- CUSTOM RAG APP SECURITY ---
+
+# Ignore local environment variables (API Keys)
+.env
+
+# Ignore local vector databases
+chroma_db/
+*.sqlite3
+
+# Ignore virtual environments
+rag_env/

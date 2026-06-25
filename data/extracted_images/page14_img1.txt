@@ -1,0 +1,76 @@
+This image presents a comprehensive comparison of predicted orbital elements against their true values, evaluated for two machine learning models: Long Short-Term Memory (LSTM) and a Physics-Informed Neural Network (PINN). The plots visualize the performance over a range of 1000 sample indices, likely representing discrete time steps.
+
+Here's a detailed, granular analysis:
+
+**1. Predicted vs True ω**
+*   **Title:** Predicted vs True ω
+*   **X-axis:** Sample Index (unitless)
+*   **Y-axis:** ω (degrees) - Argument of Perigee
+*   **Trend Lines:**
+    *   **True ω (black solid line):** Exhibits a saw-tooth pattern, linearly increasing from approximately 0 to 360 degrees over roughly 100 sample indices, then abruptly resetting to 0 degrees and repeating the cycle. This represents the periodic nature of the argument of perigee.
+    *   **LSTM (red dashed line):** Very closely tracks the True ω. Minor deviations are observed primarily at the sharp reset points, where it shows a slight lag or a less instantaneous jump compared to the true value.
+    *   **PINN (green dashed-dot line):** Tracks True ω with exceptional fidelity, often visually indistinguishable from the true curve. It appears to handle the sharp resets slightly more accurately and with less lag than the LSTM model.
+*   **Engineering Conclusion:** Both LSTM and PINN models accurately predict the argument of perigee (ω). However, the PINN model demonstrates marginally superior performance, particularly in capturing the precise timing and magnitude of the periodic resets, indicating a robust understanding of this orbital element's behavior.
+
+**2. Predicted vs True e**
+*   **Title:** Predicted vs True e
+*   **X-axis:** Sample Index (unitless)
+*   **Y-axis:** e (unitless) - Eccentricity
+*   **Trend Lines:**
+    *   **True e (black solid line):** Shows complex, multi-modal oscillatory behavior, varying between approximately 0.0004 and 0.0008. The oscillations are not strictly periodic and exhibit changing amplitudes and frequencies throughout the sample range.
+    *   **LSTM (red dashed line):** Generally follows the trend of True e but exhibits noticeable deviations. It often undershoots or overshoots peaks and troughs, and there are instances of amplitude and phase discrepancies (e.g., around sample 500-600, it significantly misrepresents the deep trough).
+    *   **PINN (green dashed-dot line):** Tracks True e with significantly higher accuracy than LSTM. The PINN curve largely overlaps the true curve, accurately capturing the complex oscillations, their varying amplitudes, and the subtle inflections, with minimal visible deviations.
+*   **Engineering Conclusion:** The PINN model provides substantially more accurate predictions for eccentricity (e) compared to the LSTM model. Its ability to capture the intricate, non-periodic variations of eccentricity with high fidelity highlights its superior understanding of the underlying orbital dynamics.
+
+**3. Predicted vs True i**
+*   **Title:** Predicted vs True i
+*   **X-axis:** Sample Index (unitless)
+*   **Y-axis:** i (degrees) - Inclination
+*   **Trend Lines:**
+    *   **True i (black solid line):** Displays fine-grained, somewhat noisy oscillations within a very narrow band, approximately 45.005 to 45.012 degrees.
+    *   **LSTM (red dashed line):** Shows significant discrepancies from True i. While it attempts to capture the oscillatory nature, it exhibits noticeable phase shifts, dampened amplitudes, and a general lack of precision in tracking the rapid fluctuations. There's a clear systematic error or bias evident.
+    *   **PINN (green dashed-dot line):** Tracks True i much more accurately than LSTM. Although not perfectly noise-free, it follows the overall trend and the finer variations of the true inclination much more closely, with considerably smaller errors and less bias.
+*   **Engineering Conclusion:** For inclination (i), the PINN model demonstrates a substantial improvement in prediction accuracy over the LSTM model. Its superior ability to track subtle, tightly bounded variations is critical for precise orbit determination.
+
+**4. Predicted vs True Ω**
+*   **Title:** Predicted vs True Ω
+*   **X-axis:** Sample Index (unitless)
+*   **Y-axis:** Ω (degrees) - Right Ascension of the Ascending Node
+*   **Trend Lines:**
+    *   **True Ω (black solid line):** Exhibits a saw-tooth pattern, linearly decreasing from approximately 400 degrees to 0 degrees over roughly 100 sample indices, then abruptly resetting to a higher value (around 400 degrees) and repeating.
+    *   **LSTM (red dashed line):** Very closely tracks True Ω. Similar to ω, minor deviations are observable at the sharp reset points, often appearing as a brief lag or slight overshoot.
+    *   **PINN (green dashed-dot line):** Tracks True Ω with extremely high fidelity, appearing virtually identical to the true curve throughout, including the sharp, discontinuous resets.
+*   **Engineering Conclusion:** Both LSTM and PINN models accurately predict the Right Ascension of the Ascending Node (Ω). The PINN model shows a slight edge, performing with near-perfect precision even at the discontinuous reset points, indicating its robustness in handling such orbital elements.
+
+**5. Predicted vs True M**
+*   **Title:** Predicted vs True M
+*   **X-axis:** Sample Index (unitless)
+*   **Y-axis:** M (degrees) - Mean Anomaly
+*   **Trend Lines:**
+    *   **True M (black solid line):** Displays a classic saw-tooth pattern, increasing from approximately 0 to 360 degrees over roughly 100 sample indices, then resetting to 0 degrees and repeating.
+    *   **LSTM (red dashed line):** Very closely tracks True M with minimal discernible deviations, appearing almost identical to the true curve.
+    *   **PINN (green dashed-dot line):** Tracks True M with exceptional accuracy, virtually indistinguishable from the true curve throughout the entire range, including the sharp resets.
+*   **Engineering Conclusion:** Both LSTM and PINN models are highly accurate in predicting the Mean Anomaly (M). The PINN model, similar to ω and Ω, maintains extremely high fidelity across the entire trajectory, reinforcing its reliability for periodically changing orbital elements.
+
+**6. Predicted vs True n**
+*   **Title:** Predicted vs True n
+*   **X-axis:** Sample Index (unitless)
+*   **Y-axis:** n (rev/day) - Mean Motion
+*   **Trend Lines:**
+    *   **True n (black solid line):** Shows an overall increasing trend, from approximately 14.3325 to 14.3525 rev/day, with overlaid subtle, irregular fluctuations.
+    *   **LSTM (red dashed line):** Consistently underestimates True n, exhibiting a clear and growing downward bias relative to the true curve. While it captures the general upward trend, the offset is significant and increases over time.
+    *   **PINN (green dashed-dot line):** Tracks True n with remarkably high accuracy. It follows the true curve very closely, capturing both the overall increasing trend and the subtle fluctuations with minimal visible bias or error.
+*   **Engineering Conclusion:** The PINN model demonstrates a significantly superior prediction capability for mean motion (n) compared to the LSTM model. The LSTM exhibits a clear and accumulating bias, whereas PINN maintains high accuracy and fidelity throughout the prediction horizon, indicating its advantage for parameters with continuous, evolving trends.
+
+**7. Predicted vs True a**
+*   **Title:** Predicted vs True a
+*   **X-axis:** Sample Index (unitless)
+*   **Y-axis:** a (km) - Semi-major Axis
+*   **Trend Lines:**
+    *   **True a (black solid line):** Shows a continuous, monotonic decreasing trend from approximately 7159 km to 7153 km, with subtle, superimposed short-period oscillations.
+    *   **LSTM (red dashed line):** Consistently overestimates True a, showing a significant and increasing upward bias relative to the true curve. The initial fit is reasonable, but the error accumulates progressively.
+    *   **PINN (green dashed-dot line):** Tracks True a with exceptional accuracy. It adheres closely to the true decreasing trend and accurately captures the subtle short-period oscillations, maintaining minimal bias and error across the entire prediction range.
+*   **Engineering Conclusion:** The PINN model provides substantially more accurate and reliable predictions for the semi-major axis (a) compared to the LSTM model. The LSTM's accumulating bias indicates a divergence from the true physical behavior, while PINN's consistent high fidelity underscores its effectiveness in predicting evolving orbital parameters.
+
+**Overall Engineering Conclusion Represented by the Visualization:**
+The visualization consistently and robustly demonstrates that the Physics-Informed Neural Network (PINN) model significantly outperforms the standard Long Short-Term Memory (LSTM) model in predicting various satellite orbital elements. While LSTM can approximate periodic parameters like ω, Ω, and M with reasonable accuracy, PINN consistently achieves higher fidelity, often appearing almost indistinguishable from the true values. Crucially, for parameters exhibiting complex, fine-grained variations, or continuous, evolving trends such as eccentricity (e), inclination (i), mean motion (n), and semi-major axis (a), PINN shows a dramatic improvement by substantially reducing bias and error, and more accurately capturing the intricate dynamics. This suggests that incorporating physical laws into the neural network architecture (as in PINN) provides a more robust, precise, and physically consistent predictive model for satellite navigation and astrodynamics applications over longer prediction horizons.

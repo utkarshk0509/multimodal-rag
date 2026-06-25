@@ -1,0 +1,61 @@
+This chart presents a comparative analysis of predicted versus true values for three distinct orbital elements over a series of sample indices. The visualization is structured as three vertical subplots, each focusing on a different orbital parameter, and includes magnified insets to highlight details at critical points.
+
+### 1. Titles and Headers:
+
+*   **Overall Chart Implied Context:** Satellite navigation research, focusing on orbital parameter prediction.
+*   **Subplot 1 Title:** "Predicted vs True Ω"
+*   **Subplot 2 Title:** "Predicted vs True M"
+*   **Subplot 3 Title:** "Predicted vs True ω"
+
+### 2. X-axis and Y-axis Labels and Units:
+
+All three subplots share the same X-axis label and unit:
+*   **X-axis Label:** "Sample Index" (unitless, representing discrete time steps or sequential data points).
+
+The Y-axis labels and units vary per subplot:
+*   **Subplot 1 Y-axis Label:** "Ω (degrees)" (Right Ascension of the Ascending Node, in degrees).
+*   **Subplot 2 Y-axis Label:** "M (degrees)" (Mean Anomaly, in degrees).
+*   **Subplot 3 Y-axis Label:** "ω (degrees)" (Argument of Perigee, in degrees).
+
+All Y-axes span from 0 to 400 degrees.
+
+### 3. Breakdown of Trend Lines, Curves, or Data Clusters:
+
+Each subplot displays three lines:
+*   **True (Black Solid Line):** Represents the ground truth or actual values of the orbital element.
+*   **LSTM (Red Dashed Line):** Represents the predictions from a Long Short-Term Memory (LSTM) neural network model.
+*   **PINN (Green Dashed Line):** Represents the predictions from a Physics-Informed Neural Network (PINN) model.
+
+**Subplot 1: Predicted vs True Ω**
+*   **True Ω:** Exhibits a clear sawtooth-like pattern. The value of Ω generally decreases from approximately 350 degrees towards 0 degrees. Upon reaching near 0 degrees, it instantaneously "wraps around" or resets to a higher value (around 350 degrees), then continues its linear decrease. This cycle repeats multiple times across the 1000 sample indices, with each decreasing segment lasting approximately 150-200 samples.
+*   **LSTM and PINN Performance:** Both LSTM and PINN models track the "True Ω" very closely during the linear decreasing segments. The red and green dashed lines are almost perfectly overlaid on the black solid line.
+*   **Zoomed-in Discrepancies (Wrap-around):** The inset highlights the wrap-around points where Ω transitions from low to high values.
+    *   The "True Ω" shows a sharp, near-vertical jump.
+    *   Both LSTM and PINN models exhibit a slight overshoot (spikes) at the peak of this jump, extending momentarily above the true value. The LSTM (red) spike appears slightly taller and potentially wider than the PINN (green) spike, indicating a marginally larger error at the peak for LSTM. Both models also appear to initiate the upward jump slightly earlier than the true value.
+
+**Subplot 2: Predicted vs True M**
+*   **True M:** Displays a sawtooth-like pattern, but in the opposite direction to Ω. The value of M generally increases from near 0 degrees towards approximately 350-360 degrees. Upon reaching this peak, it instantaneously "wraps around" or resets to a low value (near 0 degrees), then continues its linear increase. This cycle repeats roughly every 100-150 samples.
+*   **LSTM and PINN Performance:** Both LSTM and PINN models demonstrate excellent agreement with the "True M" during the linear increasing segments. The predicted lines are nearly indistinguishable from the true line.
+*   **Zoomed-in Discrepancies (Wrap-around):** The inset focuses on the wrap-around points where M transitions from high to low values.
+    *   The "True M" shows a sharp, near-vertical drop.
+    *   Both LSTM and PINN models exhibit a slight undershoot (dips) at the trough of this drop, extending momentarily below the true value. The depth and width of the undershoots for LSTM (red) and PINN (green) appear very similar, suggesting comparable performance in handling this specific type of discontinuity for M. Both models also appear to initiate the downward drop slightly earlier than the true value.
+
+**Subplot 3: Predicted vs True ω**
+*   **True ω:** Similar to M, this parameter shows a sawtooth-like pattern where the value generally increases from near 0 degrees to approximately 350-360 degrees, then instantaneously wraps around to near 0 degrees. The increasing segments show some minor curvature or non-linearity compared to M, but the overall sawtooth behavior is consistent. The cycle repeats roughly every 100-150 samples.
+*   **LSTM and PINN Performance:** Both LSTM and PINN models track the "True ω" very closely throughout the increasing segments. The visual difference between the predicted and true lines is minimal.
+*   **Zoomed-in Discrepancies (Wrap-around):** The inset highlights the wrap-around points where ω transitions from high to low values.
+    *   The "True ω" shows a sharp, near-vertical drop.
+    *   Both LSTM and PINN models exhibit a slight undershoot (dips) at the trough of this drop. However, the PINN (green) undershoot appears to be marginally smaller and less pronounced than the LSTM (red) undershoot, suggesting PINN might handle this specific wrap-around discontinuity slightly better for ω.
+
+### 4. Core Engineering Conclusion:
+
+This visualization demonstrates the effectiveness of both LSTM and Physics-Informed Neural Network (PINN) models in predicting key orbital elements (Right Ascension of the Ascending Node, Mean Anomaly, and Argument of Perigee).
+
+1.  **High Fidelity Tracking:** Both LSTM and PINN models provide highly accurate predictions for the continuous evolution of all three orbital parameters. During the smooth, non-discontinuous phases, their predicted trajectories are almost perfectly aligned with the true values, indicating excellent modeling capability for the underlying dynamics.
+2.  **Challenges at Discontinuities:** The primary challenge for both models lies in accurately capturing the instantaneous "wrap-around" or 360-degree modulus operation inherent in angular measurements. At these points:
+    *   For decreasing angles (Ω), both models exhibit a slight overshoot at the peak of the upward jump.
+    *   For increasing angles (M, ω), both models show a slight undershoot at the trough of the downward drop.
+3.  **Comparative Performance:**
+    *   For Ω and M, the performance of LSTM and PINN at these wrap-around discontinuities is very similar, with both showing comparable magnitudes of overshoots/undershoots.
+    *   For ω, PINN shows a marginal advantage, exhibiting a slightly smaller undershoot at the wrap-around troughs compared to LSTM. This suggests PINN might be slightly more robust or accurate in predicting the sharp transitions for the Argument of Perigee.
+4.  **Overall Implication:** The results indicate that both machine learning approaches are highly suitable for predicting orbital parameters, providing predictions that closely match true values. While minor transient errors occur at the 360-degree wrap-around points, their magnitude is small relative to the overall range of the parameters. For aerospace navigation systems, these models offer robust predictive capabilities, potentially with PINN holding a minor edge in handling certain types of discontinuities.

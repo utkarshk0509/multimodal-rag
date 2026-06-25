@@ -42,7 +42,7 @@ def main():
     # 4. Initialize the LLM Generator
     # We use gemini-1.5-flash as it is lightning fast and highly precise at context tracking
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-lite",
         temperature=0.2 # Low temperature keeps the model grounded strictly in the context
     )
 

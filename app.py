@@ -126,7 +126,7 @@ if "active_collection" in st.session_state:
         )
         
         retriever = vector_store.as_retriever(search_kwargs={"k": 5})
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.2)
         
         prompt_template = """You are an advanced expert research assistant. Analyze the retrieved documentation context carefully to answer the user request.
         

@@ -1,2 +1,2 @@
-# satellite-nav-multimodal-rag
+# multimodal-rag
 

@@ -53,7 +53,7 @@ def analyze_all_extracted_images(image_dir):
             
         print(f"[PROCESS] Analyzing [{idx+1}/{total_images}]: {img_name}...")
         
-        # Track consecutive 503 server errors for this specific image
+        
         server_error_count = 0
         
         while True:
@@ -94,7 +94,7 @@ def analyze_all_extracted_images(image_dir):
                     server_error_count += 1
                     if server_error_count >= 3:
                         print(f"  [BYPASS] Server rejected {img_name} 3 times. Moving to next image to prevent freezing.")
-                        break # Exits the while loop, allowing the for loop to grab the next image
+                        break 
                     else:
                         print(f"  [SERVER ERROR] 503 Overloaded (Attempt {server_error_count}/3). Pausing 30s...")
                         time.sleep(30)

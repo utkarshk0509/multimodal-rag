@@ -4,3 +4,5 @@ langchain-chroma
 langchain-text-splitters
 pymupdf
 python-dotenv
+google-generativeai
+streamlit-mic-recorder

@@ -76,10 +76,10 @@ def main():
         
         # If we still have more documents left to process, pause to reset the API quota
         if i + batch_size < total_docs:
-            print("⏳ Batch complete. Sleeping for 60 seconds to respect Google's Free Tier limits...")
+            print("Batch complete. Sleeping for 60 seconds to respect Google's Free Tier limits...")
             time.sleep(60)
             
-    print(f"✅ Success! All {total_docs} documents embedded and persisted to {persist_dir}")
+    print(f"Success! All {total_docs} documents embedded and persisted to {persist_dir}")
 
 def get_narrative_chunks():
     # Bulletproof path to your newly generated JSON

@@ -6,7 +6,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
-# --- ROBUST PATH RESOLUTION ---
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
 
@@ -39,15 +38,11 @@ def main():
     # 3. Define the Retriever (Using our verified depth of 5 chunks)
     retriever = vector_store.as_retriever(search_kwargs={"k": 5})
 
-    # 4. Initialize the LLM Generator
-    # We use gemini-1.5-flash as it is lightning fast and highly precise at context tracking
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash-lite",
         temperature=0.2 # Low temperature keeps the model grounded strictly in the context
     )
 
-    # 5. Construct a Strict RAG System Prompt
-    # This guides the model to behave like a precise space systems research assistant
     prompt_template = """You are an advanced Space Systems and Satellite Navigation AI Assistant. 
 Your objective is to provide professional, mathematically accurate, and highly structured answers based strictly on the provided technical context.
 
@@ -66,8 +61,6 @@ Answer:"""
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
 
-    # 6. Build the LCEL (LangChain Expression Language) Chain
-    # This smoothly pipes user_query -> database lookup -> text formatting -> prompt -> LLM -> clean string
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
         | prompt

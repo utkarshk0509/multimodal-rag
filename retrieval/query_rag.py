@@ -16,7 +16,7 @@ def main():
 
     persist_dir = os.path.join(PROJECT_ROOT, "chroma_db")
     
-    print(f"🔗 Connecting to database at: {persist_dir}...")
+    print(f"Connecting to database at: {persist_dir}...")
     vector_store = Chroma(
         persist_directory=persist_dir,
         embedding_function=embeddings,

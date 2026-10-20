@@ -1,8 +1,9 @@
 import os
 import tempfile
+import logging
 import streamlit as st
 from dotenv import load_dotenv
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF 2.0+: fitz is the legacy alias
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
@@ -14,7 +15,14 @@ from streamlit_mic_recorder import speech_to_text
 
 # ── Setup ────────────────────────────────────────────────────────────────────
 load_dotenv()
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+DB_DIR = os.path.join(PROJECT_ROOT, "chroma_db")
+
+# Validate API key at startup so users get a clear error immediately
+_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 st.set_page_config(page_title="Multimodal RAG Engine", layout="wide")
 st.title("Universal Technical Document RAG Engine")
@@ -22,6 +30,12 @@ st.write(
     "Upload any technical PDF or scanned research paper to build a searchable "
     "knowledge base, then ask questions by text or voice."
 )
+
+if not _api_key:
+    st.error(
+        "⚠️ No API key found. Add `GOOGLE_API_KEY` or `GEMINI_API_KEY` to your `.env` file and restart."
+    )
+    st.stop()
 
 # Single shared embedding model for both ingestion and querying
 embeddings = GoogleGenerativeAIEmbeddings(
@@ -31,7 +45,7 @@ embeddings = GoogleGenerativeAIEmbeddings(
 
 
 # ── PDF Processing ────────────────────────────────────────────────────────────
-def process_pdf(uploaded_file):
+def process_pdf(uploaded_file) -> list[dict]:
     """
     Pulls text out of every page of a PDF.
     For pages that are purely images (scanned docs), falls back to Gemini Vision
@@ -39,7 +53,7 @@ def process_pdf(uploaded_file):
     Returns a list of dicts with 'text' and 'metadata' keys.
     """
     import google.generativeai as genai
-    genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+    genai.configure(api_key=_api_key)
     vision_model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
     pages = []
@@ -74,18 +88,21 @@ def process_pdf(uploaded_file):
                         "text": text,
                         "metadata": {"source": uploaded_file.name, "page": page_num + 1}
                     })
+    except fitz.FileDataError as e:
+        st.error(f"Could not read PDF: {e}")
+        logger.error("PDF read error: %s", e)
     finally:
         # Always clean up the temp file, even if something above crashed
         if os.path.exists(tmp_path):
             try:
                 os.unlink(tmp_path)
             except PermissionError:
-                pass  # Windows sometimes holds the lock briefly; not critical
+                logger.warning("Could not delete temp file %s — Windows file lock.", tmp_path)
 
     return pages
 
 
-def format_docs(docs):
+def format_docs(docs) -> str:
     """Formats retrieved chunks into a single context block for the LLM."""
     return "\n\n".join(
         f"[Source: {d.metadata.get('source')} | Page: {d.metadata.get('page')}]\n{d.page_content}"
@@ -99,8 +116,12 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload a PDF", type=["pdf"])
 
     if uploaded_file:
-        # Sanitise the filename so it can safely be used as a collection name
-        safe_name = "".join(c if c.isalnum() else "_" for c in uploaded_file.name).lower()[:30].strip("_")
+        # Sanitise the filename so it can safely be used as a ChromaDB collection name
+        safe_name = (
+            "".join(c if c.isalnum() else "_" for c in uploaded_file.name)
+            .lower()[:30]
+            .strip("_")
+        )
         collection_name = f"col_{safe_name or 'default_doc'}"
         st.info(f"Collection: `{collection_name}`")
 
@@ -116,14 +137,15 @@ with st.sidebar:
                         Document(page_content=p["text"], metadata=p["metadata"])
                         for p in raw_pages
                     ]
-                    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+                    splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=1000, chunk_overlap=200
+                    )
                     chunks = splitter.split_documents(documents)
 
-                    db_path = os.path.join(PROJECT_ROOT, "chroma_db")
                     Chroma.from_documents(
                         documents=chunks,
                         embedding=embeddings,
-                        persist_directory=db_path,
+                        persist_directory=DB_DIR,
                         collection_name=collection_name
                     )
 
@@ -133,7 +155,9 @@ with st.sidebar:
 
 # ── Main Panel: Chat ──────────────────────────────────────────────────────────
 if "active_collection" in st.session_state:
-    st.subheader(f"Chatting with: {uploaded_file.name}")
+    # Guard: uploaded_file may be None if the user refreshed after building
+    doc_label = uploaded_file.name if uploaded_file else st.session_state["active_collection"]
+    st.subheader(f"Chatting with: {doc_label}")
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -172,9 +196,8 @@ if "active_collection" in st.session_state:
         st.session_state.messages.append({"role": "user", "content": user_query})
 
         # Build the retrieval chain on demand (keeps things stateless across reruns)
-        db_path = os.path.join(PROJECT_ROOT, "chroma_db")
         vector_store = Chroma(
-            persist_directory=db_path,
+            persist_directory=DB_DIR,
             embedding_function=embeddings,
             collection_name=st.session_state["active_collection"]
         )
@@ -202,7 +225,14 @@ Give a clear, direct, well-structured answer:"""
 
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
-                response = rag_chain.invoke(user_query)
+                try:
+                    response = rag_chain.invoke(user_query)
+                except ValueError as e:
+                    response = f"Configuration error: {e}"
+                    logger.error("RAG chain config error: %s", e)
+                except RuntimeError as e:
+                    response = f"Something went wrong: {e}"
+                    logger.error("RAG chain runtime error: %s", e)
                 st.markdown(response)
 
         st.session_state.messages.append({"role": "assistant", "content": response})

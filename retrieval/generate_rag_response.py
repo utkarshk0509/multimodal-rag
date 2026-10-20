@@ -6,61 +6,72 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
+# Figure out where we are and where the project root is
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
 
+
 def format_docs(docs):
-    """Combines all retrieved text chunks into a single string for the LLM context."""
-    formatted = []
+    """
+    Stitches retrieved chunks into one big context string for the LLM.
+    Each block gets labeled with its source file and content type so the
+    model knows where the info came from.
+    """
+    blocks = []
     for i, doc in enumerate(docs):
-        source_type = doc.metadata.get('type', 'Unknown')
-        source_name = doc.metadata.get('source', 'Unknown')
-        formatted.append(f"--- Context Block {i+1} [Type: {source_type} | Source: {source_name}] ---\n{doc.page_content}")
-    return "\n\n".join(formatted)
+        content_type = doc.metadata.get('type', 'Unknown')
+        source_file = doc.metadata.get('source', 'Unknown')
+        header = f"--- Context Block {i+1} [Type: {content_type} | Source: {source_file}] ---"
+        blocks.append(f"{header}\n{doc.page_content}")
+    return "\n\n".join(blocks)
+
 
 def main():
     load_dotenv()
 
-    # 1. Initialize the Embedding Model
+    # Set up the embedding model — same one used during ingestion so vectors match
     embeddings = GoogleGenerativeAIEmbeddings(
         model="models/gemini-embedding-001",
         task_type="RETRIEVAL_QUERY"
     )
 
-    # 2. Connect to the Local Vector Store
-    persist_dir = os.path.join(PROJECT_ROOT, "chroma_db")
+    # Hook up to our local ChromaDB that was built during the ingestion phase
+    db_path = os.path.join(PROJECT_ROOT, "chroma_db")
     vector_store = Chroma(
-        persist_directory=persist_dir,
+        persist_directory=db_path,
         embedding_function=embeddings,
         collection_name="satellite_rag_collection"
     )
 
-    # 3. Define the Retriever (Using our verified depth of 5 chunks)
+    # Pull the top 5 most relevant chunks for any given query
     retriever = vector_store.as_retriever(search_kwargs={"k": 5})
 
+    # Low temperature = stick to the facts, don't hallucinate
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash-lite",
-        temperature=0.2 # Low temperature keeps the model grounded strictly in the context
+        temperature=0.2
     )
 
-    prompt_template = """You are an advanced Space Systems and Satellite Navigation AI Assistant. 
-Your objective is to provide professional, mathematically accurate, and highly structured answers based strictly on the provided technical context.
+    # The prompt keeps the model grounded — answer from context only, no winging it
+    prompt_template = """You are a Space Systems and Satellite Navigation expert assistant.
+Give accurate, well-structured answers based strictly on the provided context below.
 
-Instructions:
-1. Base your answer ONLY on the retrieved Context Blocks provided below. Do not use outside knowledge.
-2. If the context does not contain the answer, state clearly that the information is not present in the loaded documentation.
-3. Use a clear layout with bullet points or headings if explaining complex technical concepts, charts, or error trends.
+Rules:
+1. Only use information from the Context Blocks below. Do not rely on outside knowledge.
+2. If the answer isn't in the context, say so clearly — don't guess.
+3. Use bullet points or headings when explaining complex topics, charts, or error patterns.
 
 Retrieved Context:
 {context}
 
-Question: 
+Question:
 {question}
 
 Answer:"""
 
     prompt = ChatPromptTemplate.from_template(prompt_template)
 
+    # Wire everything together: retriever → prompt → LLM → plain text output
     rag_chain = (
         {"context": retriever | format_docs, "question": RunnablePassthrough()}
         | prompt
@@ -68,20 +79,21 @@ Answer:"""
         | StrOutputParser()
     )
 
-    # 7. Execute a Live End-to-End Query
+    # Test query — swap this out for anything you want to ask the knowledge base
     query = "What does the trajectory chart indicate about the satellite's orbit and SGP4 error behavior?"
-    
-    print("Processing query through the complete Multimodal RAG Pipeline...")
+
+    print("Running query through the Multimodal RAG pipeline...")
     print(f"Query: {query}\n")
-    print("="*60 + "\n")
-    
+    print("=" * 60 + "\n")
+
     try:
         response = rag_chain.invoke(query)
         print(response)
     except Exception as e:
-        print(f"An execution error occurred: {e}")
-        
-    print("\n" + "="*60)
+        print(f"Something went wrong: {e}")
+
+    print("\n" + "=" * 60)
+
 
 if __name__ == "__main__":
     main()

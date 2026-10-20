@@ -5,106 +5,119 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-def initialize_gemini_client():
-    """Initializes the Gemini developer client using the absolute environment key path."""
-    current_script_dir = os.path.dirname(os.path.abspath(__file__))
-    root_project_dir = os.path.dirname(current_script_dir)
-    exact_env_path = os.path.join(root_project_dir, ".env")
-    
-    load_dotenv(dotenv_path=exact_env_path, override=True)
+
+def load_gemini_client():
+    """
+    Loads the API key from the project root .env and returns an authenticated
+    Gemini client. Raises clearly if the key is missing so you don't get a
+    cryptic error later.
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    env_path = os.path.join(project_root, ".env")
+
+    load_dotenv(dotenv_path=env_path, override=True)
     api_key = os.getenv("GEMINI_API_KEY")
-    
+
     if not api_key:
-        raise ValueError("[CRITICAL] API Key is completely empty. Check your .env file.")
-        
-    print(f"[INFO] Key successfully loaded. (Starts with: {api_key[:5]}...)")
+        raise ValueError("GEMINI_API_KEY is missing — check your .env file.")
+
+    print(f"API key loaded (starts with: {api_key[:5]}...)")
     return genai.Client(api_key=api_key)
 
-def analyze_all_extracted_images(image_dir):
-    """Loops through all images, generates an AI description, and handles dynamic rate limits."""
-    client = initialize_gemini_client()
-    print("[INFO] Gemini Client successfully authenticated.")
-    
+
+def describe_images(image_dir):
+    """
+    Sends each extracted chart image through Gemini Vision and saves the
+    description as a .txt file alongside the image.
+
+    Already-processed images are skipped so reruns are safe and cheap.
+    Rate limit and server errors are handled with automatic retries.
+    """
+    client = load_gemini_client()
+    print("Gemini client ready.\n")
+
     valid_extensions = (".png", ".jpg", ".jpeg", ".webp")
     image_files = [f for f in os.listdir(image_dir) if f.lower().endswith(valid_extensions)]
-    
+
     if not image_files:
-        print("[WARNING] No images found in the directory.")
+        print("No images found in the directory — nothing to process.")
         return
 
-    total_images = len(image_files)
-    print(f"[INFO] Found {total_images} charts. Resuming extraction pipeline...\n")
-    
-    system_instruction = (
-        "You are an expert aerospace data analyst. Analyze this chart extracted from a satellite "
-        "navigation research paper. Provide a structured, highly granular text description. "
-        "Include: 1. The explicit Title or Header if visible. 2. The X-axis and Y-axis labels and units. "
-        "3. A breakdown of the trend lines, curves, or data clusters shown. "
-        "4. The core engineering conclusion represented by the visualization."
+    total = len(image_files)
+    print(f"Found {total} chart(s). Starting vision extraction...\n")
+
+    # Tell the model exactly what we need: title, axes, trends, and the key takeaway
+    analysis_prompt = (
+        "You are an expert aerospace data analyst. Analyze this chart from a satellite "
+        "navigation research paper and give a structured, detailed description. Include:\n"
+        "1. The chart title or header (if visible)\n"
+        "2. X-axis and Y-axis labels with units\n"
+        "3. What the trend lines, curves, or data clusters show\n"
+        "4. The core engineering insight the chart communicates"
     )
 
     for idx, img_name in enumerate(image_files):
         img_path = os.path.join(image_dir, img_name)
-        txt_output_path = os.path.splitext(img_path)[0] + ".txt"
-        
-        if os.path.exists(txt_output_path):
-            print(f"[SKIP] [{idx+1}/{total_images}]: {img_name} (Already processed).")
+        txt_path = os.path.splitext(img_path)[0] + ".txt"
+
+        # Skip if we already have a description for this image
+        if os.path.exists(txt_path):
+            print(f"[{idx+1}/{total}] Skipping {img_name} (already done).")
             continue
-            
-        print(f"[PROCESS] Analyzing [{idx+1}/{total_images}]: {img_name}...")
-        
-        
-        server_error_count = 0
-        
+
+        print(f"[{idx+1}/{total}] Analyzing: {img_name}...")
+        server_errors = 0
+
         while True:
             try:
-                with open(img_path, "rb") as img_file:
-                    image_bytes = img_file.read()
-                    
+                with open(img_path, "rb") as f:
+                    image_bytes = f.read()
+
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash-lite", 
+                    model="gemini-2.5-flash-lite",
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
-                        system_instruction
+                        analysis_prompt
                     ]
                 )
-                
-                with open(txt_output_path, "w", encoding="utf-8") as txt_file:
-                    txt_file.write(response.text)
-                    
-                print(f"  [SUCCESS] Saved description to: {os.path.basename(txt_output_path)}")
-                time.sleep(6) 
-                break 
-                
+
+                with open(txt_path, "w", encoding="utf-8") as f:
+                    f.write(response.text)
+
+                print(f"  Saved → {os.path.basename(txt_path)}")
+                time.sleep(6)  # Stay polite to the API rate limits
+                break
+
             except Exception as e:
-                error_msg = str(e)
-                
-                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-                    match = re.search(r'Please retry in (\d+\.\d+)s', error_msg)
+                err = str(e)
+
+                if "429" in err or "RESOURCE_EXHAUSTED" in err:
+                    # Try to extract the exact retry delay from the error message
+                    match = re.search(r'Please retry in (\d+\.\d+)s', err)
                     if match:
-                        exact_cooldown = float(match.group(1)) + 2.0 
-                        print(f"  [RATE LIMIT] 429 Error. Pausing for {exact_cooldown:.1f} seconds...")
-                        time.sleep(exact_cooldown)
+                        wait = float(match.group(1)) + 2.0
+                        print(f"  Rate limited — waiting {wait:.1f}s then retrying...")
                     else:
-                        print("  [RATE LIMIT] 429 Error. Pausing for 60 seconds...")
-                        time.sleep(60)
-                    print("  [RETRY] Retrying the current image...")
-                    
-                elif "503" in error_msg or "UNAVAILABLE" in error_msg:
-                    server_error_count += 1
-                    if server_error_count >= 3:
-                        print(f"  [BYPASS] Server rejected {img_name} 3 times. Moving to next image to prevent freezing.")
-                        break 
-                    else:
-                        print(f"  [SERVER ERROR] 503 Overloaded (Attempt {server_error_count}/3). Pausing 30s...")
-                        time.sleep(30)
-                    
+                        wait = 60
+                        print(f"  Rate limited — waiting {wait}s then retrying...")
+                    time.sleep(wait)
+
+                elif "503" in err or "UNAVAILABLE" in err:
+                    server_errors += 1
+                    if server_errors >= 3:
+                        print(f"  Server rejected {img_name} 3 times — skipping to avoid getting stuck.")
+                        break
+                    print(f"  Server overloaded (attempt {server_errors}/3) — waiting 30s...")
+                    time.sleep(30)
+
                 else:
-                    print(f"  [ERROR] Unrecoverable error on {img_name}: {error_msg}")
+                    print(f"  Unexpected error on {img_name}: {err}")
                     time.sleep(10)
-                    break 
+                    break
+
 
 if __name__ == "__main__":
     target_folder = "data/extracted_images"
-    analyze_all_extracted_images(target_folder)
-    print("\n[PHASE 2 COMPLETE] Vision pipeline execution finished.")
+    describe_images(target_folder)
+    print("\nVision extraction complete.")

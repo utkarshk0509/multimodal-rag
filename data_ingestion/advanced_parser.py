@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import pymupdf as fitz  # PyMuPDF 2.0+: fitz is the legacy alias
 import json
@@ -6,12 +7,13 @@ import json
 # Module-level logger — caller can configure level from outside
 logger = logging.getLogger(__name__)
 
-# Paths resolved relative to this file so the script works from any working directory
-_HERE = os.path.dirname(os.path.abspath(__file__))
-_PROJECT_ROOT = os.path.abspath(os.path.join(_HERE, ".."))
-DEFAULT_PDF_PATH  = os.path.join(_PROJECT_ROOT, "data", "SAMPLE.pdf")
-DEFAULT_IMAGE_DIR = os.path.join(_PROJECT_ROOT, "data", "extracted_images")
-DEFAULT_CHUNKS_PATH = os.path.join(_PROJECT_ROOT, "data", "narrative_chunks.json")
+# Allow imports from the project root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import DEFAULT_PDF_PATH, IMAGE_DIR, CHUNKS_JSON_PATH
+
+# Expose as module-level defaults so callers can still override them
+DEFAULT_IMAGE_DIR   = IMAGE_DIR
+DEFAULT_CHUNKS_PATH = CHUNKS_JSON_PATH
 
 
 def parse_satellite_pdf(file_path: str,

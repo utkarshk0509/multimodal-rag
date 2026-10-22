@@ -152,6 +152,12 @@ with st.sidebar:
                     st.session_state["active_collection"] = collection_name
                     st.success(f"Done! {len(chunks)} chunks stored.")
 
+    st.divider()
+    st.subheader("Chat Controls")
+    if st.button("🗑️ Clear Chat History", use_container_width=True):
+        st.session_state.messages = []
+        st.success("Chat cleared!")
+        st.rerun()
 
 # ── Main Panel: Chat ──────────────────────────────────────────────────────────
 if "active_collection" in st.session_state:

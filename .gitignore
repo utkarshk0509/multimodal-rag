@@ -191,3 +191,13 @@ chroma_db/
 
 # Ignore virtual environments
 rag_env/
+
+# Ignore generated data artifacts (extracted images, parsed chunks)
+data/extracted_images/
+data/narrative_chunks.json
+
+# Ignore uploaded/sample PDFs (large binary files, not source code)
+data/*.pdf
+
+# Ignore Streamlit local config
+.streamlit/secrets.toml

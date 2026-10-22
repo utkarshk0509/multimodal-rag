@@ -219,8 +219,7 @@ Context:
 
 Question: {question}
 
-Give a clear, direct, well-structured answer:"""
-        )
+Give a clear, direct, well-structured answer:""")
 
         rag_chain = (
             {"context": retriever | format_docs, "question": RunnablePassthrough()}
@@ -232,14 +231,27 @@ Give a clear, direct, well-structured answer:"""
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
+                    # Retrieve source docs and generate the answer separately
+                    source_docs = retriever.invoke(user_query)
                     response = rag_chain.invoke(user_query)
                 except ValueError as e:
                     response = f"Configuration error: {e}"
+                    source_docs = []
                     logger.error("RAG chain config error: %s", e)
                 except RuntimeError as e:
                     response = f"Something went wrong: {e}"
+                    source_docs = []
                     logger.error("RAG chain runtime error: %s", e)
                 st.markdown(response)
+
+                # Show collapsible source citations
+                if source_docs:
+                    with st.expander(f"📚 Sources ({len(source_docs)} chunks retrieved)"):
+                        for i, doc in enumerate(source_docs):
+                            src = doc.metadata.get("source", "Unknown")
+                            page = doc.metadata.get("page", "N/A")
+                            st.markdown(f"**{i+1}. {src}** — Page {page}")
+                            st.caption(doc.page_content[:300] + "..." if len(doc.page_content) > 300 else doc.page_content)
 
         st.session_state.messages.append({"role": "assistant", "content": response})
 

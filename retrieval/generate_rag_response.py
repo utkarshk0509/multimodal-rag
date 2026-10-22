@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
@@ -6,9 +7,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
-# Figure out where we are and where the project root is
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
+# Allow imports from the project root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import CHROMA_DB_DIR, COLLECTION_NAME, EMBEDDING_MODEL, LLM_MODEL, LLM_TEMPERATURE, RETRIEVER_TOP_K
 
 
 def format_docs(docs):
@@ -31,25 +32,24 @@ def main():
 
     # Set up the embedding model — same one used during ingestion so vectors match
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
+        model=EMBEDDING_MODEL,
         task_type="RETRIEVAL_QUERY"
     )
 
     # Hook up to our local ChromaDB that was built during the ingestion phase
-    db_path = os.path.join(PROJECT_ROOT, "chroma_db")
     vector_store = Chroma(
-        persist_directory=db_path,
+        persist_directory=CHROMA_DB_DIR,
         embedding_function=embeddings,
-        collection_name="satellite_rag_collection"
+        collection_name=COLLECTION_NAME
     )
 
-    # Pull the top 5 most relevant chunks for any given query
-    retriever = vector_store.as_retriever(search_kwargs={"k": 5})
+    # Pull the top most relevant chunks for any given query
+    retriever = vector_store.as_retriever(search_kwargs={"k": RETRIEVER_TOP_K})
 
     # Low temperature = stick to the facts, don't hallucinate
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-lite",
-        temperature=0.2
+        model=LLM_MODEL,
+        temperature=LLM_TEMPERATURE
     )
 
     # The prompt keeps the model grounded — answer from context only, no winging it

@@ -1,13 +1,15 @@
 import os
+import sys
 import logging
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-logger = logging.getLogger(__name__)
+# Allow imports from the project root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import CHROMA_DB_DIR, COLLECTION_NAME, EMBEDDING_MODEL
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -21,21 +23,19 @@ def main():
 
     # Use the query task type so embeddings are optimised for search, not storage
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
+        model=EMBEDDING_MODEL,
         task_type="RETRIEVAL_QUERY"
     )
 
-    db_path = os.path.join(PROJECT_ROOT, "chroma_db")
-
-    if not os.path.exists(db_path):
-        logger.error("ChromaDB not found at %s — run vector_store_init.py first.", db_path)
+    if not os.path.exists(CHROMA_DB_DIR):
+        logger.error("ChromaDB not found at %s — run vector_store_init.py first.", CHROMA_DB_DIR)
         return
 
-    logger.info("Connecting to vector database at: %s", db_path)
+    logger.info("Connecting to vector database at: %s", CHROMA_DB_DIR)
     vector_store = Chroma(
-        persist_directory=db_path,
+        persist_directory=CHROMA_DB_DIR,
         embedding_function=embeddings,
-        collection_name="satellite_rag_collection"
+        collection_name=COLLECTION_NAME
     )
 
     # We only want results from the visual charts — filter out plain text chunks

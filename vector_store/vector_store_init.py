@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import glob
 import json
@@ -8,18 +9,15 @@ from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
+# Allow imports from the project root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import (
+    DATA_DIR, IMAGE_DIR, CHUNKS_JSON_PATH, CHROMA_DB_DIR,
+    COLLECTION_NAME, SOURCE_PDF_NAME, EMBEDDING_MODEL,
+    EMBED_BATCH_SIZE, EMBED_BATCH_WAIT
+)
+
 logger = logging.getLogger(__name__)
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
-
-# Centralised path constants — change once if your layout shifts
-DATA_DIR         = os.path.join(PROJECT_ROOT, "data")
-IMAGE_DIR        = os.path.join(DATA_DIR, "extracted_images")
-CHUNKS_JSON_PATH = os.path.join(DATA_DIR, "narrative_chunks.json")
-DB_DIR           = os.path.join(PROJECT_ROOT, "chroma_db")
-COLLECTION_NAME  = "satellite_rag_collection"
-SOURCE_PDF_NAME  = "SAMPLE.pdf"
 
 
 def load_narrative_chunks() -> list[str]:
@@ -85,7 +83,7 @@ def main():
 
     # RETRIEVAL_DOCUMENT task type produces better embeddings for stored content
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
+        model=EMBEDDING_MODEL,
         task_type="RETRIEVAL_DOCUMENT"
     )
 
@@ -96,26 +94,25 @@ def main():
         logger.error("No documents to embed — aborting.")
         return
 
-    logger.info("Embedding %d documents into ChromaDB at %s...", total, DB_DIR)
+    logger.info("Embedding %d documents into ChromaDB at %s...", total, CHROMA_DB_DIR)
 
     vector_store = Chroma(
-        persist_directory=DB_DIR,
+        persist_directory=CHROMA_DB_DIR,
         embedding_function=embeddings,
         collection_name=COLLECTION_NAME
     )
 
-    # Process in batches of 50 to stay within the API's free-tier rate limits
-    batch_size = 50
-    for i in range(0, total, batch_size):
-        batch = documents[i: i + batch_size]
-        end = min(i + batch_size, total)
+    # Process in batches to stay within the API's free-tier rate limits
+    for i in range(0, total, EMBED_BATCH_SIZE):
+        batch = documents[i: i + EMBED_BATCH_SIZE]
+        end = min(i + EMBED_BATCH_SIZE, total)
         logger.info("  Uploading documents %d–%d of %d...", i + 1, end, total)
         vector_store.add_documents(batch)
 
         # Don't hammer the API — wait between batches if more remain
         if end < total:
-            logger.info("  Batch done. Waiting 60s to stay within rate limits...")
-            time.sleep(60)
+            logger.info("  Batch done. Waiting %ds to stay within rate limits...", EMBED_BATCH_WAIT)
+            time.sleep(EMBED_BATCH_WAIT)
 
     logger.info("Done! %d documents stored in %s", total, DB_DIR)
 

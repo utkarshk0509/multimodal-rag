@@ -159,6 +159,19 @@ with st.sidebar:
         st.success("Chat cleared!")
         st.rerun()
 
+    st.divider()
+    st.subheader("⚙️ Retrieval Settings")
+    top_k = st.slider(
+        "Top-K chunks to retrieve",
+        min_value=1, max_value=15, value=5, step=1,
+        help="How many document chunks to retrieve for each query. Higher = more context, slower."
+    )
+    temperature = st.slider(
+        "LLM Temperature",
+        min_value=0.0, max_value=1.0, value=0.2, step=0.05,
+        help="0 = focused and factual, 1 = more creative. Keep low for RAG."
+    )
+
 # ── Main Panel: Chat ──────────────────────────────────────────────────────────
 if "active_collection" in st.session_state:
     # Guard: uploaded_file may be None if the user refreshed after building
@@ -208,8 +221,8 @@ if "active_collection" in st.session_state:
             collection_name=st.session_state["active_collection"]
         )
 
-        retriever = vector_store.as_retriever(search_kwargs={"k": 5})
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0.2)
+        retriever = vector_store.as_retriever(search_kwargs={"k": top_k})
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=temperature)
 
         prompt = ChatPromptTemplate.from_template(
             """You are an expert research assistant. Answer the question using only the provided context.

@@ -62,7 +62,7 @@ def analyze_all_extracted_images(image_dir):
                     image_bytes = img_file.read()
                     
                 response = client.models.generate_content(
-                    model="gemini-2.5-flash-lite", 
+                    model="gemini-3.5-flash-lite", 
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                         system_instruction

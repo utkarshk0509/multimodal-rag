@@ -30,7 +30,7 @@ def process_pdf(uploaded_file):
     """Extracts text from a PDF, falling back to Vision OCR for image-only/scanned pages."""
     import google.generativeai as genai
     genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-    native_model = genai.GenerativeModel('gemini-2.5-flash-lite-preview-06-17')
+    native_model = genai.GenerativeModel('gemini-3.5-flash-lite')
     
     text_chunks = []
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -157,7 +157,7 @@ if "active_collection" in st.session_state:
         )
         
         retriever = vector_store.as_retriever(search_kwargs={"k": 5})
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite-preview-06-17", temperature=0.2)
+        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite", temperature=0.2)
         
         prompt_template = """You are an advanced expert research assistant. Analyze the retrieved documentation context carefully to answer the user request.
         

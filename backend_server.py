@@ -79,7 +79,7 @@ def process_pdf_content(file_path: str, filename: str, api_key: str):
                 )
                 try:
                     response = client.models.generate_content(
-                        model="gemini-2.5-flash-lite-preview-06-17",
+                        model="gemini-3.5-flash-lite",
                         contents=[
                             prompt,
                             genai_types.Part.from_bytes(
@@ -249,7 +249,7 @@ def query_rag(req: QueryRequest):
         ])
 
         llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash-lite-preview-06-17",
+            model="gemini-3.5-flash-lite",
             temperature=0.2,
             google_api_key=valid_key
         )

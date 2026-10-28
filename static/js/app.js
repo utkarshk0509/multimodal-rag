@@ -294,6 +294,12 @@ function formatMarkdown(text) {
   return formatted;
 }
 
+function scrollToBottom() {
+  requestAnimationFrame(() => {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  });
+}
+
 // Append Chat Message
 function appendMessage(role, content, sources = []) {
   // Clear welcome screen if present
@@ -349,8 +355,7 @@ function appendMessage(role, content, sources = []) {
   row.appendChild(contentBox);
   messagesContainer.appendChild(row);
 
-  // Auto scroll to bottom
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  scrollToBottom();
 }
 
 // Query Execution
@@ -381,7 +386,7 @@ async function handleSendQuery() {
     </div>
   `;
   messagesContainer.appendChild(thinkingRow);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  scrollToBottom();
 
   try {
     const res = await fetch('/api/query', {

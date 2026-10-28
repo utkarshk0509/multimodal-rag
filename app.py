@@ -1,50 +1,75 @@
 import os
 import tempfile
+import logging
 import streamlit as st
 from dotenv import load_dotenv
-import fitz  # PyMuPDF
+import pymupdf as fitz  # PyMuPDF 2.0+: fitz is the legacy alias
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.documents import Document
 from streamlit_mic_recorder import speech_to_text
 
-# --- INITIAL SETUP & GLOBAL CONFIG ---
+# ── Setup ────────────────────────────────────────────────────────────────────
 load_dotenv()
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+DB_DIR = os.path.join(PROJECT_ROOT, "chroma_db")
 
-st.set_page_config(page_title="Universal Multimodal RAG Engine", layout="wide")
+# Validate API key at startup so users get a clear error immediately
+_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+st.set_page_config(page_title="Multimodal RAG Engine", layout="wide")
 st.title("Universal Technical Document RAG Engine")
-st.write("Upload any technical document or scanned research paper to build a dedicated vector knowledge base, then query via text or voice.")
+st.write(
+    "Upload any technical PDF or scanned research paper to build a searchable "
+    "knowledge base, then ask questions by text or voice."
+)
 
-# Initialize the global embedding model
+if not _api_key:
+    st.error(
+        "⚠️ No API key found. Add `GOOGLE_API_KEY` or `GEMINI_API_KEY` to your `.env` file and restart."
+    )
+    st.stop()
+
+# Single shared embedding model for both ingestion and querying
 embeddings = GoogleGenerativeAIEmbeddings(
     model="models/gemini-embedding-001",
     task_type="RETRIEVAL_QUERY"
 )
 
-# --- HELPER FUNCTIONS ---
-def process_pdf(uploaded_file):
-    """Extracts text from a PDF, falling back to Vision OCR for image-only/scanned pages."""
+
+# ── PDF Processing ────────────────────────────────────────────────────────────
+def process_pdf(uploaded_file) -> list[dict]:
+    """
+    Pulls text out of every page of a PDF.
+    For pages that are purely images (scanned docs), falls back to Gemini Vision
+    to OCR the page and describe any diagrams.
+    Returns a list of dicts with 'text' and 'metadata' keys.
+    """
     import google.generativeai as genai
-    genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-    native_model = genai.GenerativeModel('gemini-3.5-flash-lite')
-    
-    text_chunks = []
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-        tmp_file.write(uploaded_file.getvalue())
-        tmp_path = tmp_file.name
+genai.configure(api_key=_api_key)
+    vision_model = genai.GenerativeModel('gemini-3.5-flash-lite')
+
+    pages = []
+
+    # Write the upload to a temp file so PyMuPDF can open it
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(uploaded_file.getvalue())
+        tmp_path = tmp.name
 
     try:
-        # Context manager ensures the file lock is safely released under any condition
         with fitz.open(tmp_path) as doc:
             for page_num in range(len(doc)):
                 page = doc[page_num]
                 text = page.get_text().strip()
-                
-                # Scanned PDF / Vision OCR Fallback
+
+                # No native text means it's probably a scanned image — use OCR
                 if not text:
                     st.toast(f"Running Vision OCR on Page {page_num + 1}...")
                     pix = page.get_pixmap(dpi=150)
@@ -52,79 +77,119 @@ def process_pdf(uploaded_file):
                         "mime_type": "image/jpeg",
                         "data": pix.tobytes("jpeg")
                     }
-                    
-                    prompt = "You are an expert OCR engine. Extract all readable text from this page. If there are diagrams, describe them in detail."
-                    response = native_model.generate_content([prompt, image_data])
-                    text = response.text
-                    
+                    ocr_prompt = (
+                        "You are an OCR engine. Extract all readable text from this page. "
+                        "If there are charts or diagrams, describe them in detail."
+                    )
+                    text = vision_model.generate_content([ocr_prompt, image_data]).text
+
                 if text and text.strip():
-                    text_chunks.append({
+                    pages.append({
                         "text": text,
                         "metadata": {"source": uploaded_file.name, "page": page_num + 1}
                     })
+    except fitz.FileDataError as e:
+        st.error(f"Could not read PDF: {e}")
+        logger.error("PDF read error: %s", e)
     finally:
-        # Safely clear the temporary file from disk
+        # Always clean up the temp file, even if something above crashed
         if os.path.exists(tmp_path):
             try:
                 os.unlink(tmp_path)
             except PermissionError:
-                pass
-                
-    return text_chunks
+                logger.warning("Could not delete temp file %s — Windows file lock.", tmp_path)
 
-# --- SIDEBAR: DOCUMENT INGESTION ---
+    return pages
+
+
+def format_docs(docs) -> str:
+    """Formats retrieved chunks into a single context block for the LLM."""
+    return "\n\n".join(
+        f"[Source: {d.metadata.get('source')} | Page: {d.metadata.get('page')}]\n{d.page_content}"
+        for d in docs
+    )
+
+
+# ── Sidebar: Upload & Build ───────────────────────────────────────────────────
 with st.sidebar:
-    st.header("Document Ingestion Control")
-    uploaded_file = st.file_uploader("Upload a PDF File", type=["pdf"])
-    
+    st.header("Document Ingestion")
+    uploaded_file = st.file_uploader("Upload a PDF", type=["pdf"])
+
     if uploaded_file:
-        safe_filename = "".join([c if c.isalnum() else "_" for c in uploaded_file.name]).lower()[:30].strip("_")
-        if not safe_filename:
-            safe_filename = "default_doc"
-            
-        collection_name = f"col_{safe_filename}"
-        st.info(f"Target Collection: `{collection_name}`")
-        
+        # Sanitise the filename so it can safely be used as a ChromaDB collection name
+        safe_name = (
+            "".join(c if c.isalnum() else "_" for c in uploaded_file.name)
+            .lower()[:30]
+            .strip("_")
+        )
+        collection_name = f"col_{safe_name or 'default_doc'}"
+        st.info(f"Collection: `{collection_name}`")
+
         if st.button("Build Knowledge Base", type="primary"):
             with st.spinner(f"Extracting content from {uploaded_file.name}..."):
                 raw_pages = process_pdf(uploaded_file)
-                
+
             if not raw_pages:
-                st.error("No extractable content found in the document.")
+                st.error("Couldn't extract any content from this document.")
             else:
-                with st.spinner("Chunking content and generating vector embeddings..."):
-                    from langchain_core.documents import Document
-                    documents = [Document(page_content=p["text"], metadata=p["metadata"]) for p in raw_pages]
-                    
-                    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-                    split_docs = text_splitter.split_documents(documents)
-                    
-                    persist_dir = os.path.join(PROJECT_ROOT, "chroma_db")
-                    vector_store = Chroma.from_documents(
-                        documents=split_docs,
+                with st.spinner("Chunking and embedding..."):
+                    documents = [
+                        Document(page_content=p["text"], metadata=p["metadata"])
+                        for p in raw_pages
+                    ]
+                    splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=1000, chunk_overlap=200
+                    )
+                    chunks = splitter.split_documents(documents)
+
+                    Chroma.from_documents(
+                        documents=chunks,
                         embedding=embeddings,
-                        persist_directory=persist_dir,
+                        persist_directory=DB_DIR,
                         collection_name=collection_name
                     )
-                    
-                    st.session_state["active_collection"] = collection_name
-                    st.success(f"Context built successfully! {len(split_docs)} chunks persisted.")
 
-# --- MAIN PANEL: CHAT INTERFACE ---
+                    st.session_state["active_collection"] = collection_name
+                    st.success(f"Done! {len(chunks)} chunks stored.")
+
+    st.divider()
+    st.subheader("Chat Controls")
+    if st.button("🗑️ Clear Chat History", use_container_width=True):
+        st.session_state.messages = []
+        st.success("Chat cleared!")
+        st.rerun()
+
+    st.divider()
+    st.subheader("⚙️ Retrieval Settings")
+    top_k = st.slider(
+        "Top-K chunks to retrieve",
+        min_value=1, max_value=15, value=5, step=1,
+        help="How many document chunks to retrieve for each query. Higher = more context, slower."
+    )
+    temperature = st.slider(
+        "LLM Temperature",
+        min_value=0.0, max_value=1.0, value=0.2, step=0.05,
+        help="0 = focused and factual, 1 = more creative. Keep low for RAG."
+    )
+
+# ── Main Panel: Chat ──────────────────────────────────────────────────────────
 if "active_collection" in st.session_state:
-    st.subheader(f"Query Session: {uploaded_file.name}")
-    
+    # Guard: uploaded_file may be None if the user refreshed after building
+    doc_label = uploaded_file.name if uploaded_file else st.session_state["active_collection"]
+    st.subheader(f"Chatting with: {doc_label}")
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Replay the conversation history
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    # --- SIDE-BY-SIDE INPUT ROW ---
+    # Input row: mic on the left, text box on the right
     st.write("---")
     col_mic, col_text = st.columns([1, 15])
-    
+
     with col_mic:
         voice_input = speech_to_text(
             language='en',
@@ -133,45 +198,40 @@ if "active_collection" in st.session_state:
             just_once=True,
             key='voice_input'
         )
-        
+
     with col_text:
         text_input = st.text_input(
-            "Ask a question...", 
-            label_visibility="collapsed", 
+            "Ask a question...",
+            label_visibility="collapsed",
             placeholder="Type your question or click Record to dictate..."
         )
 
-    # Resolve query priority
+    # Voice takes priority over typed input if both arrive somehow
     user_query = voice_input if voice_input else text_input
 
     if user_query:
         with st.chat_message("user"):
             st.markdown(user_query)
         st.session_state.messages.append({"role": "user", "content": user_query})
-        
-        persist_dir = os.path.join(PROJECT_ROOT, "chroma_db")
+
+        # Build the retrieval chain on demand (keeps things stateless across reruns)
         vector_store = Chroma(
-            persist_directory=persist_dir,
+            persist_directory=DB_DIR,
             embedding_function=embeddings,
             collection_name=st.session_state["active_collection"]
         )
-        
-        retriever = vector_store.as_retriever(search_kwargs={"k": 5})
-        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite", temperature=0.2)
-        
-        prompt_template = """You are an advanced expert research assistant. Analyze the retrieved documentation context carefully to answer the user request.
-        
-        Context:
-        {context}
-        
-        Question: {question}
-        
-        Answer professionally, directly, and maintain structural clarity:"""
-        
-        prompt = ChatPromptTemplate.from_template(prompt_template)
-        
-        def format_docs(docs):
-            return "\n\n".join([f"[Source: {d.metadata.get('source')} | Page: {d.metadata.get('page')}]\n{d.page_content}" for d in docs])
+retriever = vector_store.as_retriever(search_kwargs={"k": top_k})
+        llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite", temperature=temperature)
+
+        prompt = ChatPromptTemplate.from_template(
+            """You are an expert research assistant. Answer the question using only the provided context.
+
+Context:
+{context}
+
+Question: {question}
+
+Give a clear, direct, well-structured answer:""")
 
         rag_chain = (
             {"context": retriever | format_docs, "question": RunnablePassthrough()}
@@ -181,13 +241,35 @@ if "active_collection" in st.session_state:
         )
 
         with st.chat_message("assistant"):
-            with st.spinner("Analyzing data vector space..."):
-                response = rag_chain.invoke(user_query)
+            with st.spinner("Thinking..."):
+                try:
+                    # Retrieve source docs and generate the answer separately
+                    source_docs = retriever.invoke(user_query)
+                    response = rag_chain.invoke(user_query)
+                except ValueError as e:
+                    response = f"Configuration error: {e}"
+                    source_docs = []
+                    logger.error("RAG chain config error: %s", e)
+                except RuntimeError as e:
+                    response = f"Something went wrong: {e}"
+                    source_docs = []
+                    logger.error("RAG chain runtime error: %s", e)
                 st.markdown(response)
+
+                # Show collapsible source citations
+                if source_docs:
+                    with st.expander(f"📚 Sources ({len(source_docs)} chunks retrieved)"):
+                        for i, doc in enumerate(source_docs):
+                            src = doc.metadata.get("source", "Unknown")
+                            page = doc.metadata.get("page", "N/A")
+                            st.markdown(f"**{i+1}. {src}** — Page {page}")
+                            st.caption(doc.page_content[:300] + "..." if len(doc.page_content) > 300 else doc.page_content)
+
         st.session_state.messages.append({"role": "assistant", "content": response})
-        
-        # Clear the audio transcription state buffer safely to allow consecutive queries
+
+        # Reset voice state so the user can record another question
         if voice_input:
             st.rerun()
+
 else:
-    st.info("Please upload a technical PDF document via the sidebar to initialize the interactive retrieval engine.")
+    st.info("Upload a PDF in the sidebar to get started.")

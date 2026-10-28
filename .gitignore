@@ -191,3 +191,15 @@ chroma_db/
 
 # Ignore virtual environments
 rag_env/
+
+
+# Uploaded documents (stored in /tmp on Vercel; exclude local copies)
+uploaded_docs/
+
+# Local temp data
+.tmp_local/
+
+# Large data assets — do not commit to git
+data/extracted_images/
+data/*.pdf
+data/narrative_chunks.json

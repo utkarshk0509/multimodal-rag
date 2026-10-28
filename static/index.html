@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroRAG | Multimodal Document Intelligence</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top App Navigation Bar -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+          <polyline points="2 17 12 22 22 17"/>
+          <polyline points="2 12 12 17 22 12"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brand-title">AeroRAG Enterprise</span>
+        <span class="brand-badge">Multimodal Engine</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="key-input-container" title="Google Gemini API Key">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <input type="password" id="apiKeyInput" placeholder="Google API Key (optional if in .env)">
+      </div>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>ChromaDB Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    
+    <!-- Left Ingestion Sidebar -->
+    <aside class="app-sidebar">
+      
+      <!-- Upload Section -->
+      <div class="panel-section">
+        <div class="section-label">
+          <span>Document Ingestion</span>
+          <span style="color: #818cf8;">PDF / OCR</span>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="12" y2="12"/>
+              <line x1="15" y1="15" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <div class="dropzone-title">Upload Technical Document</div>
+          <div class="dropzone-subtitle">Drag and drop PDF or click to browse</div>
+        </div>
+
+        <input type="file" id="fileInput" class="file-input" accept=".pdf">
+
+        <div class="selected-file-badge" id="filePreview" style="display: none;">
+          <span id="fileNameDisplay" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px;"></span>
+          <button id="removeFileBtn" style="background:none; border:none; color:#f87171; cursor:pointer;">&times;</button>
+        </div>
+
+        <button class="btn btn-primary" id="buildBtn" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Build Knowledge Base
+        </button>
+      </div>
+
+      <!-- Indexed Collections Section -->
+      <div class="panel-section" style="flex:1;">
+        <div class="section-label">
+          <span>Active Vector Collections</span>
+          <span id="collectionsCount" style="color: var(--text-dim);"></span>
+        </div>
+        
+        <div id="collectionsList" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Right Chat & Retrieval Workspace -->
+    <main class="chat-main">
+      
+      <!-- Active Session Banner -->
+      <div class="session-banner" id="sessionBanner" style="display: none;">
+        <div class="session-info">
+          <div class="session-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <div>
+            <span class="session-name" id="sessionDocName">Document Session</span>
+            <span class="session-meta"> &bull; Multi-vector retriever active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Stream Area -->
+      <div class="messages-container" id="messagesContainer">
+        
+        <div class="welcome-screen">
+          <div class="welcome-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <h2>Multimodal Document Intelligence</h2>
+          <p>Index complex technical documents, whitepapers, or satellite mission manuals with Vision OCR & Gemini Embeddings, then explore with structured retrieval.</p>
+          
+          <div class="feature-grid">
+            <div class="feature-pill">
+              <h5>Automatic Vision OCR</h5>
+              <p>Image-only pages and charts are transcribed seamlessly via Gemini 2.5 Flash.</p>
+            </div>
+            <div class="feature-pill">
+              <h5>Voice & Dictation</h5>
+              <p>Hands-free questioning with native microphone speech recognition.</p>
+            </div>
+            <div class="feature-pill">
+              <h5>Strict Source Citations</h5>
+              <p>Every response comes with exact page numbers and context snippets.</p>
+            </div>
+            <div class="feature-pill">
+              <h5>Persistent Vectors</h5>
+              <p>ChromaDB preserves collections for rapid subsequent interrogations.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Chat Input Bar -->
+      <div class="chat-input-wrapper">
+        <div class="chat-input-box">
+          <button class="action-btn mic-btn" id="micBtn" title="Speak to dictate your question">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+
+          <input 
+            type="text" 
+            id="chatInput" 
+            class="chat-input" 
+            placeholder="Ask a technical question about the indexed document..." 
+            autocomplete="off"
+          />
+
+          <button class="action-btn send-btn" id="sendBtn" title="Send Query">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

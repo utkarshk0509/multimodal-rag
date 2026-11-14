@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f4f7">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>AeroRAG | AI-Driven Technical Document Intelligence</title>
-  
+
   <!-- Modern Geometric Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
   <link rel="stylesheet" href="./css/style.css?v=5">
 </head>
+
 <body>
 
   <!-- Ambient Dappled Shadow & Lighting Backdrop -->
@@ -27,8 +33,9 @@
     <header class="navbar">
       <div class="nav-brand">
         <div class="brand-glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
         </div>
         <span class="brand-name">AeroRAG</span>
@@ -44,8 +51,8 @@
         <!-- API Key Capsule Input -->
         <div class="api-key-pill" title="Enter Google Gemini API Key">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
           <input type="password" id="apiKeyInput" placeholder="Gemini API Key (optional)">
         </div>
@@ -75,7 +82,8 @@
       <div class="hero-cta-row fade-in stagger-4">
         <a href="#workbench" class="hero-primary-btn">
           <span>Explore Workbench</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
@@ -86,7 +94,7 @@
     <!-- Bento Grid Showcase Section (Inspired by User's Reference) -->
     <section class="bento-section fade-in stagger-5" id="features">
       <div class="bento-grid">
-        
+
         <!-- Bento Card 1: Integrations Pill Card -->
         <div class="bento-card card-integrations">
           <div class="card-icon-row">
@@ -111,7 +119,8 @@
           </div>
           <div class="spotlight-content">
             <div class="spotlight-badge">Vision OCR Active</div>
-            <div class="spotlight-quote">"All technical schematics and diagrams are converted into searchable semantic context."</div>
+            <div class="spotlight-quote">"All technical schematics and diagrams are converted into searchable semantic
+              context."</div>
           </div>
         </div>
 
@@ -151,16 +160,16 @@
 
     <!-- Main Interactive Workbench Section (Dropzone + Collections + Chat) -->
     <section class="workbench-section" id="workbench">
-      
+
       <div class="workbench-header">
         <h2 class="section-title">Drive Transformative Impact with AI</h2>
       </div>
 
       <div class="workbench-container">
-        
+
         <!-- Left Panel: Ingestion & Knowledge Base Collections -->
         <div class="workbench-sidebar">
-          
+
           <!-- Ingestion Card -->
           <div class="bento-card sidebar-card">
             <div class="card-header-clean">
@@ -172,9 +181,9 @@
             <div class="dropzone" id="dropzone">
               <div class="dropzone-icon-circle">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
               </div>
               <div class="dropzone-text-group">
@@ -190,8 +199,8 @@
             <div class="selected-file-badge" id="filePreview" style="display: none;">
               <div class="file-badge-info">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
                 </svg>
                 <span id="fileNameDisplay">Document.pdf</span>
               </div>
@@ -201,7 +210,7 @@
             <!-- Build Knowledge Base Button -->
             <button class="build-btn" id="buildBtn" disabled>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                <polyline points="20 6 9 17 4 12"/>
+                <polyline points="20 6 9 17 4 12" />
               </svg>
               <span>Build Knowledge Base</span>
             </button>
@@ -225,7 +234,7 @@
         <!-- Right Panel: Conversational Workspace -->
         <div class="workbench-main">
           <div class="bento-card chat-card">
-            
+
             <!-- Active Session Banner -->
             <div class="session-banner" id="sessionBanner" style="display: none;">
               <div class="session-chip">
@@ -238,13 +247,13 @@
 
             <!-- Messages Stream Area -->
             <div class="messages-container" id="messagesContainer">
-              
+
               <!-- Clean Welcome Screen -->
               <div class="welcome-screen">
                 <div class="welcome-badge">Ready for Exploration</div>
                 <h3 class="welcome-title">Ask any question about your document</h3>
                 <p class="welcome-subtitle">
-                  Upload a technical paper on the left, click <strong>Build Knowledge Base</strong>, 
+                  Upload a technical paper on the left, click <strong>Build Knowledge Base</strong>,
                   and ask technical questions by typing below or using the microphone.
                 </p>
 
@@ -260,31 +269,27 @@
             <!-- Floating Chat Input Bar -->
             <div class="chat-input-wrapper">
               <div class="chat-input-box">
-                
+
                 <!-- Microphone Dictation Button -->
                 <button class="action-btn mic-btn" id="micBtn" title="Speak to dictate your question">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
                   </svg>
                 </button>
 
                 <!-- Query Text Input -->
-                <input 
-                  type="text" 
-                  id="chatInput" 
-                  class="chat-input" 
-                  placeholder="Ask a technical question about the indexed document..." 
-                  autocomplete="off"
-                />
+                <input type="text" id="chatInput" class="chat-input"
+                  placeholder="Ask a technical question about the indexed document..." autocomplete="off" />
 
                 <!-- Send Button -->
                 <button class="action-btn send-btn" id="sendBtn" title="Send Query">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"/>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
                   </svg>
                 </button>
               </div>
@@ -316,4 +321,5 @@
   <!-- Frontend Logic Script -->
   <script src="./js/app.js?v=5"></script>
 </body>
+
 </html>

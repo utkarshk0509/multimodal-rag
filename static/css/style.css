@@ -9,13 +9,13 @@
   --bg-surface: #ffffff;
   --bg-surface-subtle: #f8fafc;
   --bg-surface-elevated: #ffffff;
-  
+
   /* Text Tokens */
   --text-primary: #111827;
   --text-secondary: #4b5563;
   --text-muted: #6b7280;
   --text-subtle: #9ca3af;
-  
+
   /* Bento Pastel Color Blocks */
   --pastel-lime: #c7f284;
   --pastel-lime-dark: #274008;
@@ -25,33 +25,33 @@
   --pastel-yellow-dark: #4d4002;
   --pastel-sky: #e0f2fe;
   --pastel-sky-dark: #07436b;
-  
+
   /* Accent Tokens */
   --accent-dark: #18181b;
   --accent-dark-hover: #27272a;
   --accent-blue: #3b82f6;
   --accent-emerald: #10b981;
   --accent-rose: #f43f5e;
-  
+
   /* Borders & Shadows */
   --border-subtle: rgba(0, 0, 0, 0.06);
   --border-medium: rgba(0, 0, 0, 0.1);
   --border-focus: rgba(24, 24, 27, 0.4);
-  
+
   --shadow-bento: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   --shadow-float: 0 20px 35px -5px rgba(0, 0, 0, 0.06), 0 10px 15px -5px rgba(0, 0, 0, 0.03);
   --shadow-input: 0 1px 3px rgba(0, 0, 0, 0.04);
-  
+
   /* Radii */
   --radius-pill: 9999px;
   --radius-bento: 24px;
   --radius-card: 20px;
   --radius-element: 12px;
-  
+
   /* Typography */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  
+
   /* Motion */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 0.15s ease;
@@ -59,7 +59,9 @@
 }
 
 /* Base Reset */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -548,9 +550,18 @@ body {
   margin-left: -6px;
 }
 
-.avatar-dot.dot-1 { background: #38bdf8; margin-left: 0; }
-.avatar-dot.dot-2 { background: #ec4899; }
-.avatar-dot.dot-3 { background: #10b981; }
+.avatar-dot.dot-1 {
+  background: #38bdf8;
+  margin-left: 0;
+}
+
+.avatar-dot.dot-2 {
+  background: #ec4899;
+}
+
+.avatar-dot.dot-3 {
+  background: #10b981;
+}
 
 .quality-desc {
   font-size: 0.88rem;
@@ -646,7 +657,8 @@ body {
   margin-bottom: 16px;
 }
 
-.dropzone:hover, .dropzone.dragover {
+.dropzone:hover,
+.dropzone.dragover {
   border-color: var(--text-primary);
   background: #ffffff;
 }
@@ -1111,9 +1123,17 @@ body {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .send-btn {
@@ -1144,7 +1164,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Toast Notifications */
@@ -1172,8 +1194,13 @@ body {
   gap: 10px;
 }
 
-.toast.success { border-left: 4px solid var(--accent-emerald); }
-.toast.error { border-left: 4px solid var(--accent-rose); }
+.toast.success {
+  border-left: 4px solid var(--accent-emerald);
+}
+
+.toast.error {
+  border-left: 4px solid var(--accent-rose);
+}
 
 /* Orchestrated Staggered Entrance Animations */
 .fade-in {
@@ -1188,17 +1215,32 @@ body {
   }
 }
 
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.12s; }
-.stagger-3 { animation-delay: 0.2s; }
-.stagger-4 { animation-delay: 0.28s; }
-.stagger-5 { animation-delay: 0.36s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.12s;
+}
+
+.stagger-3 {
+  animation-delay: 0.2s;
+}
+
+.stagger-4 {
+  animation-delay: 0.28s;
+}
+
+.stagger-5 {
+  animation-delay: 0.36s;
+}
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1223,18 +1265,184 @@ body {
   margin-right: 8px;
 }
 
-/* Responsive */
+/* ==========================================================================
+   Responsive — Tablet (960px and below)
+   Desktop layout is completely untouched above this breakpoint
+   ========================================================================== */
 @media (max-width: 960px) {
+  /* Navbar */
+  .navbar {
+    padding: 10px 16px;
+    border-radius: 16px;
+    top: 12px;
+    gap: 12px;
+  }
+  .nav-links { display: none; }
+  .api-key-pill input { width: 130px; }
+
+  /* Hero */
+  .hero-section { margin-bottom: 40px; }
+
+  /* Bento Grid: 2-column tablet layout */
   .bento-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
-  .card-integrations, .card-visual-spotlight, .card-stat-green, .card-stat-clean, .card-quality {
-    grid-column: span 1;
-  }
+  .card-integrations     { grid-column: span 1; }
+  .card-visual-spotlight { grid-column: span 1; }
+  .card-stat-green       { grid-column: span 1; }
+  .card-stat-clean       { grid-column: span 1; }
+  .card-quality          { grid-column: span 2; }
+
+  /* Workbench */
   .workbench-container {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
-  .nav-links {
-    display: none;
+  .chat-card { height: 520px; }
+}
+
+/* ==========================================================================
+   Responsive — Mobile (640px and below)
+   ========================================================================== */
+@media (max-width: 640px) {
+  /* Page wrapper — reduce horizontal margins */
+  .page-wrapper {
+    padding: 12px 14px 60px 14px;
   }
+
+  /* Floating Navbar */
+  .navbar {
+    padding: 10px 14px;
+    border-radius: 14px;
+    top: 8px;
+    margin-bottom: 28px;
+    gap: 10px;
+  }
+  .brand-name { font-size: 1rem; }
+  .brand-glyph { width: 28px; height: 28px; }
+  .nav-links { display: none; }
+  .pill-btn { padding: 7px 14px; font-size: 0.82rem; }
+  .api-key-pill { display: none; } /* Kept clean on small mobile */
+
+  /* Hero Section */
+  .hero-section {
+    margin-bottom: 32px;
+    padding: 8px 0 0 0;
+  }
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    margin-bottom: 16px;
+  }
+  .hero-headline {
+    font-size: clamp(1.8rem, 7.5vw, 2.5rem);
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .hero-subtitle {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+  .hero-primary-btn {
+    padding: 11px 22px;
+    font-size: 0.88rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Bento Grid — Single Column Stack */
+  .bento-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .card-integrations,
+  .card-visual-spotlight,
+  .card-stat-green,
+  .card-stat-clean,
+  .card-quality {
+    grid-column: span 1;
+  }
+
+  /* Bento Cards Spacing & Typography */
+  .bento-card { border-radius: 18px; }
+  .card-integrations  { padding: 20px; }
+  .card-visual-spotlight { padding: 20px; }
+  .card-stat-green    { padding: 24px 20px; }
+  .card-stat-clean    { padding: 24px 20px; }
+  .card-quality       { padding: 20px; flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  .stat-number        { font-size: 3rem; margin-bottom: 8px; }
+  .stat-number-clean  { font-size: 3rem; margin-bottom: 8px; }
+
+  /* Workbench Section */
+  .workbench-header { margin-bottom: 20px; }
+  .section-title { font-size: 1.55rem; letter-spacing: -0.02em; }
+  .section-tag   { font-size: 0.7rem; }
+
+
+  .workbench-container {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+
+  /* Ingestion Sidebar Cards */
+  .sidebar-card { padding: 18px; border-radius: 18px; }
+  .dropzone { padding: 24px 12px; }
+  .dropzone-icon-circle { width: 38px; height: 38px; margin-bottom: 8px; }
+  .dropzone-headline { font-size: 0.88rem; }
+  .dropzone-caption  { font-size: 0.72rem; }
+  .build-btn { padding: 12px 14px; font-size: 0.85rem; }
+
+  /* Chat Studio */
+  .chat-card {
+    height: 520px;
+    border-radius: 18px;
+  }
+  .session-banner { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+  .session-badge  { display: none; }
+  .messages-container { padding: 16px 12px; gap: 14px; }
+
+  /* Welcome Screen */
+  .welcome-screen { padding: 10px 6px; }
+  .welcome-title   { font-size: 1.15rem; }
+  .welcome-subtitle { font-size: 0.82rem; margin-bottom: 16px; }
+  .welcome-suggestions { gap: 6px; }
+  .suggestion-pill { font-size: 0.75rem; padding: 8px 12px; text-align: left; }
+
+  /* Chat Messages & Avatars */
+  .message-row { max-width: 96%; gap: 8px; }
+  .message-content { font-size: 0.85rem; padding: 10px 14px; border-radius: 14px; }
+  .avatar { width: 28px; height: 28px; font-size: 0.7rem; }
+
+  /* Chat Bottom Input */
+  .chat-input-wrapper { padding: 10px 12px; }
+  .chat-input-box { padding: 4px 6px 4px 14px; }
+  .chat-input { font-size: 0.85rem; }
+  .action-btn { width: 34px; height: 34px; }
+
+  /* Toasts */
+  .toast-container { bottom: 16px; right: 12px; left: 12px; }
+  .toast { width: 100%; border-radius: 12px; font-size: 0.8rem; padding: 10px 14px; }
+
+  /* Footer */
+  .app-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 36px;
+    font-size: 0.75rem;
+  }
+}
+/* ==========================================================================
+   Responsive — Extra Small Devices (380px and below)
+   ========================================================================== */
+@media (max-width: 380px) {
+  .hero-headline { font-size: 1.55rem; }
+  .stat-number, .stat-number-clean { font-size: 2.3rem; }
+  .chat-card { height: 440px; }
+  .navbar { border-radius: 12px; padding: 8px 12px; }
 }

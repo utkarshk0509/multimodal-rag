@@ -1177,8 +1177,15 @@ body {
 
 /* Orchestrated Staggered Entrance Animations */
 .fade-in {
-  opacity: 0;
+  opacity: 1;
   animation: fadeInUp 0.8s var(--ease-spring) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .stagger-1 { animation-delay: 0.05s; }

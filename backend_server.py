@@ -301,4 +301,5 @@ if os.path.exists(STATIC_DIR):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("backend_server:app", host="0.0.0.0", port=port, reload=True)
+    host = "0.0.0.0" if os.getenv("PORT") else "127.0.0.1"
+    uvicorn.run("backend_server:app", host=host, port=port, reload=True)

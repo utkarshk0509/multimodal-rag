@@ -6,12 +6,12 @@ A **Retrieval-Augmented Generation (RAG)** application that understands both tex
 
 ## Features
 
-- 📄 **PDF Parsing** — extracts text from native PDFs using PyMuPDF
-- 🖼️ **Vision OCR** — falls back to Gemini Vision for scanned/image-only pages
-- 📊 **Chart Understanding** — uses Gemini to describe charts and diagrams
-- 🔍 **Semantic Search** — ChromaDB + Gemini Embeddings for vector retrieval
-- 🎙️ **Voice Input** — ask questions via microphone (speech-to-text)
-- 💬 **Chat UI** — Streamlit-based conversational interface with source citations
+- **PDF Parsing** — extracts text from native PDFs using PyMuPDF
+- **Vision OCR** — falls back to Gemini Vision for scanned/image-only pages
+- **Chart Understanding** — uses Gemini to describe charts and diagrams
+- **Semantic Search** — ChromaDB + Gemini Embeddings for vector retrieval
+- **Voice Input** — ask questions via microphone (speech-to-text)
+- **Chat UI** — Streamlit-based conversational interface with source citations
 
 ---
 

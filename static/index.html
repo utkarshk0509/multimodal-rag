@@ -15,10 +15,29 @@
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
     rel="stylesheet">
 
-  <link rel="stylesheet" href="./css/style.css?v=5">
+  <link rel="stylesheet" href="./css/style.css?v=7">
+
+  <!-- Motion (vanilla Framer Motion engine) -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/motion@11.11.13/+esm" crossorigin>
+  <script>
+    // Hide [data-animate] elements until Motion reveals them. If Motion
+    // can't load within 3s (offline / CDN blocked), show everything as-is.
+    (function () {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var root = document.documentElement;
+      root.classList.add('motion-pending');
+      setTimeout(function () {
+        if (!root.classList.contains('motion-ready')) root.classList.remove('motion-pending');
+      }, 3000);
+    })();
+  </script>
 </head>
 
 <body>
+
+  <!-- Scroll progress indicator (driven by Motion scroll()) -->
+  <div class="scroll-progress" aria-hidden="true"></div>
 
   <!-- Ambient Dappled Shadow & Lighting Backdrop -->
   <div class="ambient-backdrop">
@@ -30,7 +49,7 @@
   <div class="page-wrapper">
 
     <!-- Top Minimalist Capsule Navigation -->
-    <header class="navbar">
+    <header class="navbar" data-animate="fade-down">
       <div class="nav-brand">
         <div class="brand-glyph">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -57,7 +76,7 @@
           <input type="password" id="apiKeyInput" placeholder="Gemini API Key (optional)">
         </div>
 
-        <button class="pill-btn pill-btn-dark" onclick="document.getElementById('fileInput').click()">
+        <button class="pill-btn pill-btn-dark" data-press onclick="document.getElementById('fileInput').click()">
           Upload PDF
         </button>
       </div>
@@ -65,22 +84,22 @@
 
     <!-- Hero Title & Subtitle Section -->
     <section class="hero-section">
-      <div class="hero-badge fade-in stagger-1">
+      <div class="hero-badge" data-animate="scale" data-delay="0.05">
         <span class="pulse-dot"></span>
         <span>Multimodal Technical RAG Engine</span>
       </div>
 
-      <h1 class="hero-headline fade-in stagger-2">
+      <h1 class="hero-headline" data-split data-delay="0.15">
         AI-Driven Support To Boost<br>Your Technical Research
       </h1>
 
-      <p class="hero-subtitle fade-in stagger-3">
+      <p class="hero-subtitle" data-animate="blur" data-delay="0.55">
         A platform that helps researchers and engineers extract insights at scale,
         unifying text blocks, technical charts, and strict page-by-page citations.
       </p>
 
-      <div class="hero-cta-row fade-in stagger-4">
-        <a href="#workbench" class="hero-primary-btn">
+      <div class="hero-cta-row" data-animate="fade-up" data-delay="0.7">
+        <a href="#workbench" class="hero-primary-btn" data-magnetic data-press>
           <span>Explore Workbench</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round">
@@ -92,11 +111,11 @@
     </section>
 
     <!-- Bento Grid Showcase Section (Inspired by User's Reference) -->
-    <section class="bento-section fade-in stagger-5" id="features">
-      <div class="bento-grid">
+    <section class="bento-section" id="features">
+      <div class="bento-grid" data-stagger>
 
         <!-- Bento Card 1: Integrations Pill Card -->
-        <div class="bento-card card-integrations">
+        <div class="bento-card card-integrations" data-tilt>
           <div class="card-icon-row">
             <div class="tech-icon-pill" title="PyMuPDF Native Parsing">
               <span class="icon-label">PDF</span>
@@ -113,7 +132,7 @@
         </div>
 
         <!-- Bento Card 2: Visual Preview / Diagram Spotlight -->
-        <div class="bento-card card-visual-spotlight">
+        <div class="bento-card card-visual-spotlight" data-tilt>
           <div class="spotlight-tag">
             <span>Transcript</span>
           </div>
@@ -125,8 +144,8 @@
         </div>
 
         <!-- Bento Card 3: Pastel Green Stat Highlight -->
-        <div class="bento-card card-stat-green">
-          <div class="stat-number">83%</div>
+        <div class="bento-card card-stat-green" data-tilt>
+          <div class="stat-number" data-count="83" data-suffix="%">83%</div>
           <div class="stat-meta">
             <strong>Autonomous Resolution</strong>
             <span>Up to 83% of complex research queries answered directly</span>
@@ -134,8 +153,8 @@
         </div>
 
         <!-- Bento Card 4: Big Stat White Card -->
-        <div class="bento-card card-stat-clean">
-          <div class="stat-number-clean">5.5B</div>
+        <div class="bento-card card-stat-clean" data-tilt>
+          <div class="stat-number-clean" data-count="5.5" data-decimals="1" data-suffix="B">5.5B</div>
           <div class="stat-meta-clean">
             <strong>Context Tokens Indexed</strong>
             <span>More efficient than manual paper review</span>
@@ -143,7 +162,7 @@
         </div>
 
         <!-- Bento Card 5: Automated Quality Card -->
-        <div class="bento-card card-quality">
+        <div class="bento-card card-quality" data-tilt>
           <div class="quality-header">
             <h4>Automated Verification</h4>
             <div class="avatars-cluster">
@@ -161,14 +180,14 @@
     <!-- Main Interactive Workbench Section (Dropzone + Collections + Chat) -->
     <section class="workbench-section" id="workbench">
 
-      <div class="workbench-header">
+      <div class="workbench-header" data-animate="blur">
         <h2 class="section-title">Drive Transformative Impact with AI</h2>
       </div>
 
       <div class="workbench-container">
 
         <!-- Left Panel: Ingestion & Knowledge Base Collections -->
-        <div class="workbench-sidebar">
+        <div class="workbench-sidebar" data-stagger data-stagger-variant="slide-left">
 
           <!-- Ingestion Card -->
           <div class="bento-card sidebar-card">
@@ -208,7 +227,7 @@
             </div>
 
             <!-- Build Knowledge Base Button -->
-            <button class="build-btn" id="buildBtn" disabled>
+            <button class="build-btn" id="buildBtn" data-press="0.97" disabled>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
@@ -232,70 +251,146 @@
         </div>
 
         <!-- Right Panel: Conversational Workspace -->
-        <div class="workbench-main">
+        <div class="workbench-main" data-animate="slide-right" data-delay="0.15">
           <div class="bento-card chat-card">
 
-            <!-- Active Session Banner -->
-            <div class="session-banner" id="sessionBanner" style="display: none;">
-              <div class="session-chip">
-                <span class="session-indicator"></span>
-                <span class="session-label">Session:</span>
-                <span class="session-name" id="sessionDocName">Document Session</span>
-              </div>
-              <span class="session-badge">Retriever Active</span>
-            </div>
-
-            <!-- Messages Stream Area -->
-            <div class="messages-container" id="messagesContainer">
-
-              <!-- Clean Welcome Screen -->
-              <div class="welcome-screen">
-                <div class="welcome-badge">Ready for Exploration</div>
-                <h3 class="welcome-title">Ask any question about your document</h3>
-                <p class="welcome-subtitle">
-                  Upload a technical paper on the left, click <strong>Build Knowledge Base</strong>,
-                  and ask technical questions by typing below or using the microphone.
-                </p>
-
-                <div class="welcome-suggestions">
-                  <div class="suggestion-pill">"Summarize the executive findings and methodology"</div>
-                  <div class="suggestion-pill">"What do the diagrams on pages 10-15 illustrate?"</div>
-                  <div class="suggestion-pill">"Extract all key specifications and metrics"</div>
+            <!-- Chat Header: assistant identity, active document, actions -->
+            <div class="chat-header">
+              <div class="chat-identity">
+                <div class="chat-glyph" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                  </svg>
+                </div>
+                <div class="chat-identity-text">
+                  <span class="chat-title">Research Assistant</span>
+                  <span class="chat-status" id="chatStatus">
+                    <span class="status-dot"></span>
+                    <span id="chatStatusText">No document selected</span>
+                  </span>
                 </div>
               </div>
 
+              <div class="chat-header-actions">
+                <div class="doc-chip" id="sessionBanner" hidden>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  <span id="sessionDocName">Document</span>
+                </div>
+                <button class="icon-btn" id="exportChatBtn" data-press="0.9" title="Export conversation as Markdown" aria-label="Export conversation" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </button>
+                <button class="icon-btn" id="clearChatBtn" data-press="0.9" title="Clear conversation" aria-label="Clear conversation" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            <!-- Floating Chat Input Bar -->
+            <!-- Messages Stream Area -->
+            <div class="messages-container" id="messagesContainer" role="log" aria-live="polite" aria-label="Conversation"></div>
+
+            <!-- Jump to latest -->
+            <button class="scroll-bottom-btn" id="scrollBottomBtn" aria-label="Scroll to latest message" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <polyline points="19 12 12 19 5 12" />
+              </svg>
+            </button>
+
+            <!-- Composer -->
             <div class="chat-input-wrapper">
               <div class="chat-input-box">
+                <textarea id="chatInput" class="chat-input" rows="1"
+                  placeholder="Ask a technical question about the indexed document…" autocomplete="off"
+                  aria-label="Your question"></textarea>
 
-                <!-- Microphone Dictation Button -->
-                <button class="action-btn mic-btn" id="micBtn" title="Speak to dictate your question">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                    <line x1="12" y1="19" x2="12" y2="23" />
-                    <line x1="8" y1="23" x2="16" y2="23" />
-                  </svg>
-                </button>
-
-                <!-- Query Text Input -->
-                <input type="text" id="chatInput" class="chat-input"
-                  placeholder="Ask a technical question about the indexed document..." autocomplete="off" />
-
-                <!-- Send Button -->
-                <button class="action-btn send-btn" id="sendBtn" title="Send Query">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                </button>
+                <div class="composer-toolbar">
+                  <div class="composer-left">
+                    <button class="action-btn mic-btn" id="micBtn" data-press="0.88" title="Speak to dictate your question" aria-label="Dictate question">
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="23" />
+                        <line x1="8" y1="23" x2="16" y2="23" />
+                      </svg>
+                    </button>
+                    <label class="topk-select" title="How many document passages to retrieve">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                      </svg>
+                      <select id="topKSelect" aria-label="Passages to retrieve">
+                        <option value="3">3 sources</option>
+                        <option value="5" selected>5 sources</option>
+                        <option value="8">8 sources</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="composer-right">
+                    <span class="composer-hint"><kbd>Enter</kbd> send · <kbd>Shift</kbd>+<kbd>Enter</kbd> new line</span>
+                    <button class="action-btn send-btn" id="sendBtn" data-press="0.88" title="Send question" aria-label="Send question" disabled>
+                      <svg class="icon-send" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5" />
+                        <polyline points="5 12 12 5 19 12" />
+                      </svg>
+                      <svg class="icon-stop" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="5" y="5" width="14" height="14" rx="2" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
           </div>
+
+          <!-- Welcome screen, re-rendered whenever the conversation is empty -->
+          <template id="welcomeTemplate">
+            <div class="welcome-screen">
+              <div class="welcome-orb" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </div>
+              <h3 class="welcome-title">Ask anything about your document</h3>
+              <p class="welcome-subtitle" data-welcome-subtitle></p>
+              <div class="welcome-suggestions">
+                <button type="button" class="suggestion-card" data-press="0.97" data-prompt="Summarize the key findings and methodology of this document.">
+                  <span class="suggestion-icon">✦</span>
+                  <span class="suggestion-title">Summarize</span>
+                  <span class="suggestion-text">Key findings &amp; methodology</span>
+                </button>
+                <button type="button" class="suggestion-card" data-press="0.97" data-prompt="Extract all key specifications, parameters and metrics as a table.">
+                  <span class="suggestion-icon">▦</span>
+                  <span class="suggestion-title">Extract specs</span>
+                  <span class="suggestion-text">Parameters &amp; metrics as a table</span>
+                </button>
+                <button type="button" class="suggestion-card" data-press="0.97" data-prompt="What do the diagrams and figures in this document illustrate?">
+                  <span class="suggestion-icon">◈</span>
+                  <span class="suggestion-title">Explain figures</span>
+                  <span class="suggestion-text">What the diagrams illustrate</span>
+                </button>
+                <button type="button" class="suggestion-card" data-press="0.97" data-prompt="What limitations, assumptions or open questions does this document mention?">
+                  <span class="suggestion-icon">?</span>
+                  <span class="suggestion-title">Find limitations</span>
+                  <span class="suggestion-text">Assumptions &amp; open questions</span>
+                </button>
+              </div>
+            </div>
+          </template>
         </div>
 
       </div>
@@ -303,7 +398,7 @@
     </section>
 
     <!-- Clean Footer -->
-    <footer class="app-footer">
+    <footer class="app-footer" data-animate="fade">
       <div class="footer-left">
         <span class="footer-brand">AeroRAG</span>
         <span class="footer-meta">AI-Driven Technical Document Intelligence</span>
@@ -319,7 +414,9 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Frontend Logic Script -->
-  <script src="./js/app.js?v=5"></script>
+  <script src="./js/app.js?v=7"></script>
+  <!-- Motion layer: entrances, springs, tilt, scroll effects -->
+  <script type="module" src="./js/motion.js?v=7"></script>
 </body>
 
 </html>

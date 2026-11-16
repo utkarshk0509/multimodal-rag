@@ -39,7 +39,15 @@ app.py (Streamlit)             ← retrieves top-k chunks → Gemini LLM → ans
 
 ```
 multimodal-rag/
-├── app.py                        # Main Streamlit application
+├── backend_server.py             # FastAPI app: /api/* + serves the web UI
+├── static/
+│   ├── index.html                # Web UI
+│   ├── css/style.css
+│   └── js/
+│       ├── app.js                # UI logic (upload, collections, chat)
+│       └── motion.js             # Animation layer (Motion / Framer Motion engine)
+├── Procfile, render.yaml         # Render deployment
+├── vercel.json                   # Vercel deployment
 ├── requirements.txt
 ├── .env.example                  # Copy to .env and fill in your API key
 ├── data/
@@ -83,13 +91,40 @@ cp .env.example .env
 # Edit .env and add your Google / Gemini API key
 ```
 
-### 3. Run the Streamlit app (recommended)
+### 3. Run the web app
 
 ```bash
-streamlit run app.py
+python backend_server.py
+# or: uvicorn backend_server:app --reload
 ```
 
-Then upload any PDF in the sidebar, click **Build Knowledge Base**, and start chatting.
+Open http://127.0.0.1:8000, upload a PDF, click **Build Knowledge Base**, and start chatting.
+
+---
+
+## Website Animations
+
+The UI uses [Motion](https://motion.dev), the vanilla-JS edition of Framer Motion
+(same spring physics and engine), loaded from jsDelivr as an ES module in
+`static/js/motion.js`. No build step is required.
+
+Add animation to any element in `index.html` declaratively, Framer-style:
+
+| Attribute | Effect |
+|---|---|
+| `data-animate="fade-up"` | Enter on scroll into view. Variants: `fade-up`, `fade-down`, `fade`, `scale`, `blur`, `slide-left`, `slide-right` |
+| `data-delay="0.2"` | Delay (seconds) for `data-animate` / `data-stagger` / `data-split` |
+| `data-stagger` | Children enter one after another (`data-stagger-variant` picks the variant) |
+| `data-split` | Word-by-word headline reveal |
+| `data-count="83" data-suffix="%"` | Count-up number (`data-decimals`, `data-prefix` optional) |
+| `data-tilt` | 3D pointer tilt with glare (mouse/trackpad only) |
+| `data-magnetic` | Element drifts toward the cursor |
+| `data-press="0.95"` | Spring press feedback (works on dynamically created elements) |
+
+From `app.js`, call animations through `fx(name, ...args)`, e.g. `fx('enter', el, 'scale')`,
+`fx('message', row, 'user')`, `fx('shake', el)`. These are no-ops when Motion is
+unavailable or the visitor has **prefers-reduced-motion** enabled, and content
+is shown anyway if the CDN can't be reached within 3 seconds.
 
 ---
 

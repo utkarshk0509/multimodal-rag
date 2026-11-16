@@ -1,4 +1,5 @@
 import os
+import mimetypes
 import tempfile
 from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
@@ -18,6 +19,13 @@ from google import genai as google_genai               # new google-genai SDK (r
 from google.genai import types as genai_types
 
 load_dotenv()
+
+# Force correct MIME types for frontend assets. On Windows, the registry can map
+# .js to text/plain, which makes browsers refuse ES-module scripts (motion.js).
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("application/javascript", ".mjs")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/svg+xml", ".svg")
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -293,8 +301,10 @@ if os.path.exists(STATIC_DIR):
         # Prevent interfering with /api routes
         if full_path.startswith("api/"):
             raise HTTPException(status_code=404, detail="Endpoint not found")
-        file_path = os.path.join(STATIC_DIR, full_path)
-        if os.path.isfile(file_path):
+        file_path = os.path.realpath(os.path.join(STATIC_DIR, full_path))
+        # Only serve files that resolve inside STATIC_DIR (blocks ../ traversal)
+        inside_static = os.path.commonpath([file_path, os.path.realpath(STATIC_DIR)]) == os.path.realpath(STATIC_DIR)
+        if inside_static and os.path.isfile(file_path):
             return FileResponse(file_path)
         return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 

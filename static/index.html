@@ -94,8 +94,8 @@
       </h1>
 
       <p class="hero-subtitle" data-animate="blur" data-delay="0.55">
-        A platform that helps researchers and engineers extract insights at scale,
-        unifying text blocks, technical charts, and strict page-by-page citations.
+        Upload a technical PDF and ask questions about it. Answers are drawn from the document's
+        text and scanned pages, with page-by-page citations.
       </p>
 
       <div class="hero-cta-row" data-animate="fade-up" data-delay="0.7">
@@ -120,7 +120,7 @@
             <div class="tech-icon-pill" title="PyMuPDF Native Parsing">
               <span class="icon-label">PDF</span>
             </div>
-            <div class="tech-icon-pill" title="Gemini 3.5 Flash Vision">
+            <div class="tech-icon-pill" title="Gemini 3.5 Flash-Lite Vision">
               <span class="icon-label">Vision</span>
             </div>
             <div class="tech-icon-pill" title="ChromaDB Vector Store">
@@ -128,7 +128,7 @@
             </div>
           </div>
           <h3 class="bento-title">Native & OCR Ingestion</h3>
-          <p class="bento-desc">Way better at extracting complex aerospace diagrams, formulas, and scanned papers.</p>
+          <p class="bento-desc">Reads native PDF text with PyMuPDF. Pages with no text layer are transcribed by Gemini Vision.</p>
         </div>
 
         <!-- Bento Card 2: Visual Preview / Diagram Spotlight -->
@@ -138,40 +138,40 @@
           </div>
           <div class="spotlight-content">
             <div class="spotlight-badge">Vision OCR Active</div>
-            <div class="spotlight-quote">"All technical schematics and diagrams are converted into searchable semantic
-              context."</div>
+            <div class="spotlight-quote">"Scanned, image-only pages are transcribed, and the diagrams on them described,
+              so their content becomes searchable."</div>
           </div>
         </div>
 
         <!-- Bento Card 3: Pastel Green Stat Highlight -->
         <div class="bento-card card-stat-green" data-tilt>
-          <div class="stat-number" data-count="83" data-suffix="%">83%</div>
+          <div class="stat-number" data-count="5">5</div>
           <div class="stat-meta">
-            <strong>Autonomous Resolution</strong>
-            <span>Up to 83% of complex research queries answered directly</span>
+            <strong>Sources per Answer</strong>
+            <span>Most relevant passages retrieved per question by default (adjustable)</span>
           </div>
         </div>
 
         <!-- Bento Card 4: Big Stat White Card -->
         <div class="bento-card card-stat-clean" data-tilt>
-          <div class="stat-number-clean" data-count="5.5" data-decimals="1" data-suffix="B">5.5B</div>
+          <div class="stat-number-clean" data-count="1000">1000</div>
           <div class="stat-meta-clean">
-            <strong>Context Tokens Indexed</strong>
-            <span>More efficient than manual paper review</span>
+            <strong>Characters per Chunk</strong>
+            <span>200-character overlap keeps sentences intact across chunk boundaries</span>
           </div>
         </div>
 
         <!-- Bento Card 5: Automated Quality Card -->
         <div class="bento-card card-quality" data-tilt>
           <div class="quality-header">
-            <h4>Automated Verification</h4>
+            <h4>Page-Level Citations</h4>
             <div class="avatars-cluster">
               <div class="avatar-dot dot-1"></div>
               <div class="avatar-dot dot-2"></div>
               <div class="avatar-dot dot-3"></div>
             </div>
           </div>
-          <p class="quality-desc">Every response is cross-checked and verified against grounded document chunks.</p>
+          <p class="quality-desc">Every answer lists the retrieved passages with file name and page number, so you can check it against the source.</p>
         </div>
 
       </div>
@@ -404,7 +404,7 @@
         <span class="footer-meta">AI-Driven Technical Document Intelligence</span>
       </div>
       <div class="footer-right">
-        <span>Powered by Gemini 3.5 Flash & ChromaDB</span>
+        <span>Powered by Gemini 3.5 Flash-Lite & ChromaDB</span>
       </div>
     </footer>
 

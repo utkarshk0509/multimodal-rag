@@ -2,21 +2,25 @@ import os
 import mimetypes
 import tempfile
 from typing import List, Optional
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
+
+import chromadb
+import pymupdf
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-
-import pymupdf                                         # replaces deprecated `import fitz`
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from google import genai
+from google.genai import types
 from langchain_chroma import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
-from google import genai as google_genai               # new google-genai SDK (replaces google-generativeai)
-from google.genai import types as genai_types
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+import config
 
 load_dotenv()
 
@@ -29,20 +33,14 @@ mimetypes.add_type("image/svg+xml", ".svg")
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-# Use system temp dir — writable on both Vercel (/tmp) and local Windows/Mac dev.
-# tempfile.gettempdir() resolves to /tmp on Linux/Vercel, %TEMP% on Windows.
+# The temp dir is writable on Vercel (/tmp) as well as on local Windows/Mac
 CHROMA_DIR = os.path.join(tempfile.gettempdir(), "chroma_db")
 UPLOAD_DIR = os.path.join(tempfile.gettempdir(), "uploaded_docs")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(CHROMA_DIR, exist_ok=True)
 
-app = FastAPI(
-    title="Multimodal RAG API",
-    description="Backend API powering the modern Multimodal Technical Document RAG Application",
-    version="1.0.0"
-)
+app = FastAPI(title="Multimodal RAG API")
 
-# Enable CORS for local development or hosted UI
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -52,32 +50,33 @@ app.add_middleware(
 )
 
 def get_api_key(provided_key: Optional[str] = None) -> str:
-    key = (provided_key or "").strip() or os.getenv("GOOGLE_API_KEY", "").strip()
+    # A key typed in the UI wins over the one in .env
+    key = (provided_key or "").strip() or (config.get_api_key() or "").strip()
     if not key:
         raise HTTPException(
             status_code=400,
-            detail="Google API Key is missing. Please provide it in the request or set GOOGLE_API_KEY environment variable."
+            detail="Google API Key is missing. Enter it in the UI or set GOOGLE_API_KEY in the environment."
         )
     return key
 
 def get_embeddings(api_key: str):
     return GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
+        model=config.EMBEDDING_MODEL,
         task_type="RETRIEVAL_QUERY",
         google_api_key=api_key
     )
 
-def process_pdf_content(file_path: str, filename: str, api_key: str):
-    """Extract text from PDF pages with Vision OCR fallback for image-only/scanned pages."""
-    client = google_genai.Client(api_key=api_key)
+def extract_pages(file_path: str, filename: str, api_key: str):
+    # Returns one entry per page that has text. Pages with no text layer
+    # (scanned pages) are sent to Gemini Vision for OCR instead.
+    client = genai.Client(api_key=api_key)
 
-    text_chunks = []
+    pages = []
     with pymupdf.open(file_path) as doc:
         for page_num in range(len(doc)):
             page = doc[page_num]
             text = page.get_text().strip()
 
-            # Scanned PDF / Vision OCR Fallback
             is_scanned = False
             if not text:
                 pix = page.get_pixmap(dpi=150)
@@ -87,10 +86,10 @@ def process_pdf_content(file_path: str, filename: str, api_key: str):
                 )
                 try:
                     response = client.models.generate_content(
-                        model="gemini-3.5-flash-lite",
+                        model=config.VISION_MODEL,
                         contents=[
                             prompt,
-                            genai_types.Part.from_bytes(
+                            types.Part.from_bytes(
                                 data=pix.tobytes("jpeg"),
                                 mime_type="image/jpeg"
                             )
@@ -99,11 +98,11 @@ def process_pdf_content(file_path: str, filename: str, api_key: str):
                     text = (response.text or "").strip()
                     is_scanned = True
                 except Exception as e:
-                    print(f"Vision OCR error on page {page_num + 1}: {e}")
+                    print(f"Vision OCR failed on page {page_num + 1}: {e}")
                     text = ""
 
             if text:
-                text_chunks.append({
+                pages.append({
                     "text": text,
                     "metadata": {
                         "source": filename,
@@ -111,7 +110,7 @@ def process_pdf_content(file_path: str, filename: str, api_key: str):
                         "is_scanned": is_scanned
                     }
                 })
-    return text_chunks
+    return pages
 
 
 class IngestResponse(BaseModel):
@@ -124,7 +123,7 @@ class QueryRequest(BaseModel):
     question: str
     collection_name: str
     api_key: Optional[str] = None
-    top_k: Optional[int] = 5
+    top_k: Optional[int] = config.RETRIEVER_TOP_K
 
 class SourceItem(BaseModel):
     source: str
@@ -138,25 +137,17 @@ class QueryResponse(BaseModel):
 
 @app.get("/api/health")
 def health_check():
-    has_env_key = bool(os.getenv("GOOGLE_API_KEY"))
-    return {
-        "status": "healthy",
-        "has_env_api_key": has_env_key
-    }
+    return {"status": "healthy", "has_env_api_key": bool(config.get_api_key())}
 
 @app.get("/api/collections")
-def list_collections(api_key: Optional[str] = Query(None)):
-    """List existing collections in ChromaDB."""
+def list_collections():
     try:
-        import chromadb
         client = chromadb.PersistentClient(path=CHROMA_DIR)
-        collections = client.list_collections()
         result = []
-        for col in collections:
-            count = col.count()
+        for col in client.list_collections():
             result.append({
                 "name": col.name,
-                "count": count,
+                "count": col.count(),
                 "metadata": col.metadata or {}
             })
         return {"collections": result}
@@ -173,34 +164,31 @@ async def ingest_document(
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are currently supported.")
 
-    # Generate sanitized collection name
+    # Chroma collection names only allow a limited set of characters
     clean_name = "".join([c if c.isalnum() else "_" for c in file.filename]).lower()[:30].strip("_")
     if not clean_name:
         clean_name = "default_doc"
     collection_name = f"col_{clean_name}"
 
-    # Save uploaded file to temp dir — writable on Vercel (/tmp) and local dev
-    saved_path = os.path.join(UPLOAD_DIR, file.filename)
+    # basename() so a filename like "../../x.pdf" can't escape UPLOAD_DIR
+    saved_path = os.path.join(UPLOAD_DIR, os.path.basename(file.filename))
     content = await file.read()
     with open(saved_path, "wb") as f_out:
         f_out.write(content)
 
     try:
-        raw_pages = process_pdf_content(saved_path, file.filename, valid_key)
-        if not raw_pages:
+        pages = extract_pages(saved_path, file.filename, valid_key)
+        if not pages:
             raise HTTPException(status_code=400, detail="No extractable text or content found in the uploaded PDF.")
 
-        from langchain_core.documents import Document
-        documents = [Document(page_content=p["text"], metadata=p["metadata"]) for p in raw_pages]
+        documents = [Document(page_content=p["text"], metadata=p["metadata"]) for p in pages]
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        split_docs = text_splitter.split_documents(documents)
+        splitter = RecursiveCharacterTextSplitter(chunk_size=config.CHUNK_SIZE, chunk_overlap=config.CHUNK_OVERLAP)
+        split_docs = splitter.split_documents(documents)
 
-        embeddings_model = get_embeddings(valid_key)
-
-        vector_store = Chroma.from_documents(
+        Chroma.from_documents(
             documents=split_docs,
-            embedding=embeddings_model,
+            embedding=get_embeddings(valid_key),
             persist_directory=CHROMA_DIR,
             collection_name=collection_name
         )
@@ -208,13 +196,13 @@ async def ingest_document(
         return IngestResponse(
             message=f"Document '{file.filename}' processed and indexed successfully.",
             collection_name=collection_name,
-            total_pages=len(raw_pages),
+            total_pages=len(pages),
             chunks_indexed=len(split_docs)
         )
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process document: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process document: {e}")
 
 @app.post("/api/query", response_model=QueryResponse)
 def query_rag(req: QueryRequest):
@@ -224,15 +212,13 @@ def query_rag(req: QueryRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
     try:
-        embeddings_model = get_embeddings(valid_key)
-
         vector_store = Chroma(
             persist_directory=CHROMA_DIR,
-            embedding_function=embeddings_model,
+            embedding_function=get_embeddings(valid_key),
             collection_name=req.collection_name
         )
 
-        k = req.top_k or 5
+        k = req.top_k or config.RETRIEVER_TOP_K
         retriever = vector_store.as_retriever(search_kwargs={"k": k})
         docs = retriever.invoke(req.question)
 
@@ -251,43 +237,37 @@ def query_rag(req: QueryRequest):
             for d in docs
         ]
 
-        context_str = "\n\n".join([
+        # Label each chunk with its page so the model can cite it
+        context = "\n\n".join([
             f"[Source: {d.metadata.get('source')} | Page: {d.metadata.get('page')}]\n{d.page_content}"
             for d in docs
         ])
 
         llm = ChatGoogleGenerativeAI(
-            model="gemini-3.5-flash-lite",
-            temperature=0.2,
+            model=config.LLM_MODEL,
+            temperature=config.LLM_TEMPERATURE,
             google_api_key=valid_key
         )
 
-        prompt_template = """You are an advanced expert research assistant. Analyze the retrieved documentation context carefully to answer the user request.
+        prompt_template = """You are a research assistant. Answer the question using the context retrieved from the document.
 
 Context:
 {context}
 
 Question: {question}
 
-Answer professionally, directly, and maintain structural clarity. Cite specific pages/sections when available."""
+Answer clearly and directly. Cite page numbers when they are available."""
 
         prompt = ChatPromptTemplate.from_template(prompt_template)
         rag_chain = prompt | llm | StrOutputParser()
 
-        answer = rag_chain.invoke({
-            "context": context_str,
-            "question": req.question
-        })
-
-        return QueryResponse(
-            answer=answer,
-            sources=sources
-        )
+        answer = rag_chain.invoke({"context": context, "question": req.question})
+        return QueryResponse(answer=answer, sources=sources)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Query failed: {e}")
 
 
-# Serve static files and frontend web application
+# The frontend in static/ is served by the same app
 STATIC_DIR = os.path.join(PROJECT_ROOT, "static")
 if os.path.exists(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -298,7 +278,7 @@ if os.path.exists(STATIC_DIR):
 
     @app.get("/{full_path:path}")
     async def serve_static_or_index(full_path: str):
-        # Prevent interfering with /api routes
+        # Unknown /api paths should 404 instead of returning index.html
         if full_path.startswith("api/"):
             raise HTTPException(status_code=404, detail="Endpoint not found")
         file_path = os.path.realpath(os.path.join(STATIC_DIR, full_path))

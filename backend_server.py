@@ -9,7 +9,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, SecretStr
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -63,11 +63,11 @@ def get_embeddings(api_key: str):
     return GoogleGenerativeAIEmbeddings(
         model=config.EMBEDDING_MODEL,
         task_type="RETRIEVAL_QUERY",
-        google_api_key=api_key
+        api_key=SecretStr(api_key)
     )
 
 def extract_pages(file_path: str, filename: str, api_key: str):
-    # Returns one entry per page that has text. Pages with no text layer
+    # Returns one Document per page that has text. Pages with no text layer
     # (scanned pages) are sent to Gemini Vision for OCR instead.
     client = genai.Client(api_key=api_key)
 
@@ -75,7 +75,7 @@ def extract_pages(file_path: str, filename: str, api_key: str):
     with pymupdf.open(file_path) as doc:
         for page_num in range(len(doc)):
             page = doc[page_num]
-            text = page.get_text().strip()
+            text = str(page.get_text()).strip()
 
             is_scanned = False
             if not text:
@@ -102,14 +102,10 @@ def extract_pages(file_path: str, filename: str, api_key: str):
                     text = ""
 
             if text:
-                pages.append({
-                    "text": text,
-                    "metadata": {
-                        "source": filename,
-                        "page": page_num + 1,
-                        "is_scanned": is_scanned
-                    }
-                })
+                pages.append(Document(
+                    page_content=text,
+                    metadata={"source": filename, "page": page_num + 1, "is_scanned": is_scanned}
+                ))
     return pages
 
 
@@ -161,30 +157,29 @@ async def ingest_document(
 ):
     valid_key = get_api_key(api_key)
 
-    if not file.filename.lower().endswith(".pdf"):
+    filename = os.path.basename(file.filename or "")
+    if not filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are currently supported.")
 
     # Chroma collection names only allow a limited set of characters
-    clean_name = "".join([c if c.isalnum() else "_" for c in file.filename]).lower()[:30].strip("_")
+    clean_name = "".join([c if c.isalnum() else "_" for c in filename]).lower()[:30].strip("_")
     if not clean_name:
         clean_name = "default_doc"
     collection_name = f"col_{clean_name}"
 
-    # basename() so a filename like "../../x.pdf" can't escape UPLOAD_DIR
-    saved_path = os.path.join(UPLOAD_DIR, os.path.basename(file.filename))
+    # basename() above stops a name like "../../x.pdf" from escaping UPLOAD_DIR
+    saved_path = os.path.join(UPLOAD_DIR, filename)
     content = await file.read()
     with open(saved_path, "wb") as f_out:
         f_out.write(content)
 
     try:
-        pages = extract_pages(saved_path, file.filename, valid_key)
+        pages = extract_pages(saved_path, filename, valid_key)
         if not pages:
             raise HTTPException(status_code=400, detail="No extractable text or content found in the uploaded PDF.")
 
-        documents = [Document(page_content=p["text"], metadata=p["metadata"]) for p in pages]
-
         splitter = RecursiveCharacterTextSplitter(chunk_size=config.CHUNK_SIZE, chunk_overlap=config.CHUNK_OVERLAP)
-        split_docs = splitter.split_documents(documents)
+        split_docs = splitter.split_documents(pages)
 
         Chroma.from_documents(
             documents=split_docs,
@@ -194,7 +189,7 @@ async def ingest_document(
         )
 
         return IngestResponse(
-            message=f"Document '{file.filename}' processed and indexed successfully.",
+            message=f"Document '{filename}' processed and indexed successfully.",
             collection_name=collection_name,
             total_pages=len(pages),
             chunks_indexed=len(split_docs)
@@ -246,7 +241,7 @@ def query_rag(req: QueryRequest):
         llm = ChatGoogleGenerativeAI(
             model=config.LLM_MODEL,
             temperature=config.LLM_TEMPERATURE,
-            google_api_key=valid_key
+            api_key=SecretStr(valid_key)
         )
 
         prompt_template = """You are a research assistant. Answer the question using the context retrieved from the document.

@@ -61,7 +61,7 @@ def describe_images(image_dir=IMAGE_DIR):
                     contents=[types.Part.from_bytes(data=image_bytes, mime_type=mime_type), PROMPT]
                 )
                 with open(txt_path, "w", encoding="utf-8") as f:
-                    f.write(response.text)
+                    f.write(response.text or "")
                 print(f"  Saved {os.path.basename(txt_path)}")
                 time.sleep(6)  # stay under the free tier rate limit
                 break

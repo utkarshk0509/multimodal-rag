@@ -11,8 +11,7 @@ from config import CHROMA_DB_DIR, COLLECTION_NAME, EMBEDDING_MODEL, get_api_key
 
 def main():
     load_dotenv()
-    api_key = get_api_key()
-    if not api_key:
+    if not get_api_key():
         print("No API key found. Set GOOGLE_API_KEY or GEMINI_API_KEY in your .env file.")
         return
 
@@ -22,8 +21,7 @@ def main():
 
     embeddings = GoogleGenerativeAIEmbeddings(
         model=EMBEDDING_MODEL,
-        task_type="RETRIEVAL_QUERY",
-        google_api_key=api_key
+        task_type="RETRIEVAL_QUERY"
     )
     vector_store = Chroma(
         persist_directory=CHROMA_DB_DIR,

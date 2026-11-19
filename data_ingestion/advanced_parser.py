@@ -24,7 +24,9 @@ def parse_pdf(file_path, image_dir=IMAGE_DIR, chunks_path=CHUNKS_JSON_PATH):
     for page_num in range(len(doc)):
         page = doc[page_num]
 
-        table_count += len(page.find_tables().tables)
+        tables = page.find_tables()
+        if tables:
+            table_count += len(tables.tables)
 
         # Skip very short blocks like axis labels and page numbers
         for block in page.get_text("blocks"):

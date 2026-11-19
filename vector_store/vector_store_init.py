@@ -48,16 +48,14 @@ def build_documents():
 
 def main():
     load_dotenv()
-    api_key = get_api_key()
-    if not api_key:
+    if not get_api_key():
         print("No API key found. Set GOOGLE_API_KEY or GEMINI_API_KEY in your .env file.")
         return
 
     # RETRIEVAL_DOCUMENT is the task type meant for stored content
     embeddings = GoogleGenerativeAIEmbeddings(
         model=EMBEDDING_MODEL,
-        task_type="RETRIEVAL_DOCUMENT",
-        google_api_key=api_key
+        task_type="RETRIEVAL_DOCUMENT"
     )
 
     documents = build_documents()

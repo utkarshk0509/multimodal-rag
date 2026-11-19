@@ -41,23 +41,21 @@ def format_docs(docs):
 
 def main():
     load_dotenv()
-    api_key = get_api_key()
-    if not api_key:
+    if not get_api_key():
         print("No API key found. Set GOOGLE_API_KEY or GEMINI_API_KEY in your .env file.")
         return
 
     # Must be the same embedding model that was used in vector_store_init.py
     embeddings = GoogleGenerativeAIEmbeddings(
         model=EMBEDDING_MODEL,
-        task_type="RETRIEVAL_QUERY",
-        google_api_key=api_key
+        task_type="RETRIEVAL_QUERY"
     )
     vector_store = Chroma(
         persist_directory=CHROMA_DB_DIR,
         embedding_function=embeddings,
         collection_name=COLLECTION_NAME
     )
-    llm = ChatGoogleGenerativeAI(model=LLM_MODEL, temperature=LLM_TEMPERATURE, google_api_key=api_key)
+    llm = ChatGoogleGenerativeAI(model=LLM_MODEL, temperature=LLM_TEMPERATURE)
     chain = ChatPromptTemplate.from_template(PROMPT_TEMPLATE) | llm | StrOutputParser()
 
     question = "What does the trajectory chart indicate about the satellite's orbit and SGP4 error behavior?"
